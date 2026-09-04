@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Regia Asta — Fantacalcio 26/27</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A1410;
+    --surface:#101E17;
+    --surface2:#152820;
+    --line:#20362B;
+    --text:#EDEDE3;
+    --text-dim:#8CA396;
+    --gold:#D9A62E;
+    --semitop:#4F9C82;
+    --lowcost:#3B6B58;
+    --sorprese:#5B6D64;
+    --amber:#F2B705;
+    --red:#C0483A;
+    --green:#3F8F5F;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+  body{padding-bottom:20px;}
+  h1,h2,h3,.display{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  header{position:sticky; top:0; z-index:20; background:linear-gradient(180deg,#0A1410 85%,rgba(10,20,16,0));
+    padding:14px 14px 6px; border-bottom:1px solid var(--line);}
+  .title-row{display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+  .title-row h1{font-size:20px; margin:0; color:var(--text); font-weight:700;}
+  .title-row .tag{font-size:10px; color:var(--amber); font-weight:600; letter-spacing:0.12em;}
+
+  .scoreboard{display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-top:10px;}
+  .sb-cell{background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:8px 6px; text-align:center;}
+  .sb-cell .lbl{font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:3px;}
+  .sb-cell .val{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:var(--amber);}
+  .sb-cell.warn .val{color:var(--red);}
+  .sb-cell input{width:100%; background:transparent; border:none; color:var(--amber); font-family:'JetBrains Mono',monospace;
+    font-weight:700; font-size:18px; text-align:center; outline:none;}
+
+  .roles-strip{display:flex; gap:6px; margin-top:8px;}
+  .role-chip{flex:1; background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:6px 4px; text-align:center; cursor:pointer;}
+  .role-chip.active{background:var(--surface2); border-color:var(--amber);}
+  .role-chip .rn{font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em;}
+  .role-chip .rc{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-dim);}
+  .role-chip.active .rc{color:var(--amber);}
+
+  .strategy{margin:10px 14px 0; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:10px 12px;}
+  .strategy summary{cursor:pointer; font-size:12px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; list-style:none; display:flex; justify-content:space-between; align-items:center;}
+  .strategy summary::-webkit-details-marker{display:none;}
+  .strategy summary .arrow{transition:transform .15s;}
+  .strategy[open] summary .arrow{transform:rotate(90deg);}
+  .strat-row{display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-top:1px solid var(--line); font-size:13px;}
+  .strat-row:first-of-type{border-top:none;}
+  .strat-label{min-width:92px; font-weight:600; font-size:11.5px; letter-spacing:0.03em;}
+  .strat-bar{flex:1; height:6px; background:var(--line); border-radius:3px; margin:0 10px; overflow:hidden;}
+  .strat-bar-fill{height:100%; background:var(--green);}
+  .strat-target{width:40px; background:var(--surface2); border:1px solid var(--line); color:var(--text); text-align:center;
+    border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:13px; padding:3px 0;}
+  .strat-subhead{font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em;
+    margin-top:12px; padding-top:10px; border-top:1px solid var(--line);}
+
+  .search-wrap{margin:10px 14px 0;}
+  .search-wrap input{width:100%; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:9px 12px; color:var(--text); font-size:14px; outline:none;}
+  .search-wrap input:focus{border-color:var(--amber);}
+
+  main{padding:10px 14px 20px;}
+
+  .tier-header{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:16px 2px 6px; color:var(--text-dim);}
+  .tier-header:first-child{padding-top:2px;}
+  .tier-header.tier-PREFERITI{color:#f6c453;}
+  .tier-header.tier-TOP{color:var(--gold);}
+  .tier-header.tier-SEMITOP{color:var(--semitop);}
+  .tier-header.tier-LOWCOST_TITOLARI{color:var(--lowcost);}
+  .tier-header.tier-LOWCOST_SORPRESE{color:var(--sorprese);}
+
+  .player{background:var(--surface); border:1px solid var(--line); border-radius:8px; margin-bottom:6px; overflow:hidden;}
+  .player.status-mine{border-color:var(--green); background:linear-gradient(90deg, rgba(63,143,95,0.14), var(--surface) 40%);}
+  .player.status-other{opacity:0.42;}
+  .p-row{display:flex; align-items:center; gap:10px; padding:10px 12px; cursor:pointer;}
+  .p-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .tier-TOP-dot{background:var(--gold);}
+  .tier-SEMITOP-dot{background:var(--semitop);}
+  .tier-LOWCOST_TITOLARI-dot{background:var(--lowcost);}
+  .tier-LOWCOST_SORPRESE-dot{background:var(--sorprese);}
+  .p-namewrap{flex:1; min-width:0;}
+  .p-name{font-size:14.5px; font-weight:600; line-height:1.25; margin-bottom:3px;}
+
+  .current-injury{
+    display:inline-block;
+    margin-left:5px;
+    color:#E05A4F;
+    font-size:0.9em;
+    line-height:1;
+    vertical-align:1px;
+    text-shadow:0 0 7px rgba(224,90,79,.22);
+  }
+  .injury-detail{
+    border-color:rgba(224,90,79,.45);
+    background:rgba(192,72,58,.08);
+  }
+  .injury-detail .decision-lbl{color:#E05A4F;}
+  .injury-detail .decision-val{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;max-width:100%;}
+  .injury-detail-val{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    line-height:1.4;
+    overflow-wrap:anywhere;
+    word-break:normal;
+    max-width:100%;
+  }
+  .injury-detail-val b{
+    color:var(--text);
+    font-weight:600;
+  }
+  .injury-detail-val span{
+    color:var(--text-dim);
+  }
+
+.fav-star{color:#f6c453; font-size:0.95em; margin-left:4px; vertical-align:1px; text-shadow:0 0 8px rgba(246,196,83,.22);}
+  .p-name .strike{text-decoration:line-through;}
+  .p-team{font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.03em;}
+  .p-badge{font-size:9px; padding:2px 6px; border-radius:4px; font-weight:700; letter-spacing:0.05em; flex-shrink:0;}
+  .p-badge.mine{background:var(--green); color:#0A1410;}
+  .p-badge.other{background:var(--red); color:#0A1410;}
+  .p-price-block{text-align:right; flex-shrink:0;}
+  .p-price-main{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; color:var(--amber); margin-bottom:3px;}
+  .p-price-main.paid{color:var(--green);}
+  .p-price-main.other{color:var(--red);}
+  .p-price-sub{font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.04em;}
+  .p-score{font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:var(--text-dim);}
+  .p-metrics{display:flex; align-items:flex-start; gap:4px; text-align:right;}
+  .p-metric{min-width:40px; display:flex; flex-direction:column; align-items:flex-end;}
+  .p-metric-starter,.p-metric-injury,.p-metric-score{min-width:31px;}
+  .p-metric-label{font-size:7px; line-height:1; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; white-space:nowrap; margin-bottom:3px; height:7px;}
+  .p-metric-value{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; line-height:1.05;}
+  .p-metric-score .p-metric-value{color:var(--text-dim); font-size:13px; font-weight:500;}
+  .p-metric-starter .p-metric-value{color:var(--text-dim); font-size:13px; font-weight:700;}
+  .p-health-inline .tit-inline{color:var(--text-dim);}
+  .p-metric-injury .p-metric-value{font-size:13px; font-weight:700;}
+  .p-metric-ideal,.p-metric-max{min-width:50px;}
+  .p-metric-max{margin-left:-2px;}
+  .p-metric-ideal .p-metric-value,.p-metric-max .p-metric-value{font-size:17px;}
+  .p-metric-injury.inj-low .p-metric-value{color:var(--green);}
+  .p-metric-injury.inj-mid .p-metric-value{color:var(--amber);}
+  .p-metric-injury.inj-high .p-metric-value{color:var(--red);}
+  .p-metric-injury.inj-na .p-metric-value{color:var(--text-dim);}
+  .p-health-inline{display:flex; justify-content:flex-end; gap:4px; align-items:center; font-family:'JetBrains Mono',monospace; font-size:9px; margin-bottom:2px;}
+  .p-health-inline .inj-low{color:var(--green);}
+  .p-health-inline .inj-mid{color:var(--amber);}
+  .p-health-inline .inj-high{color:var(--red);}
+  .p-health-inline .inj-na{color:var(--text-dim);}
+  .p-metric-ideal .p-metric-value{color:var(--amber);}
+  .p-metric-max .p-metric-value{color:#C76A24;}
+
+  .p-panel{display:none; padding:0 12px 12px; gap:8px; flex-wrap:wrap;}
+  .p-panel.open{display:flex;}
+  .p-panel input[type=number]{width:70px; background:var(--surface2); border:1px solid var(--line); border-radius:6px;
+    padding:7px 8px; color:var(--text); font-family:'JetBrains Mono',monospace; font-size:14px; outline:none;}
+  .p-panel input[type=number]:focus{border-color:var(--amber);}
+  .p-panel label{font-size:10px; color:var(--text-dim); display:block; margin-bottom:3px; text-transform:uppercase;}
+  .p-panel .fld{display:flex; flex-direction:column;}
+  .btn{border:none; border-radius:6px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.03em;}
+  .btn-mine{background:var(--green); color:#0A1410;}
+  .btn-other{background:var(--red); color:#0A1410;}
+  .btn-free{background:var(--line); color:var(--text-dim);}
+  .btn-row{display:flex; gap:6px; align-items:flex-end; margin-left:auto;}
+
+  .empty{text-align:center; color:var(--text-dim); font-size:13px; padding:30px 0;}
+
+  footer{margin-top:10px; padding:10px 14px 4px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-dim);}
+  footer button{background:none; border:1px solid var(--line); color:var(--text-dim); font-size:11px; padding:5px 10px; border-radius:6px; cursor:pointer;}
+  footer .status{font-family:'JetBrains Mono',monospace;}
+
+  /* PHASE BANNER */
+  .phase-banner{margin:8px 14px 0; background:var(--surface); border:1px solid var(--line); border-radius:6px;
+    padding:6px 10px; font-size:11px; color:var(--text-dim); display:flex; justify-content:space-between; align-items:center;}
+  .phase-banner .n{font-family:'JetBrains Mono',monospace; color:var(--amber); font-weight:700;}
+
+  /* PRICE TREND */
+  .p-trend{font-size:11px; margin-left:2px;}
+  .p-trend.up{color:var(--red);}
+  .p-trend.down{color:var(--green);}
+
+  /* OWNER CHIPS in panel */
+  .owner-chips{display:flex; flex-wrap:wrap; gap:5px; width:100%;}
+  .owner-chip{background:var(--surface2); border:1px solid var(--line); color:var(--text-dim); font-size:10.5px;
+    font-weight:700; padding:5px 8px; border-radius:5px; cursor:pointer; letter-spacing:0.02em;}
+  .owner-chip.active{background:var(--red); color:#0A1410; border-color:var(--red);}
+  .panel-section-lbl{font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; width:100%; margin-bottom:2px;}
+
+  /* ROSE PANEL */
+  .rose-card{background:var(--surface2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin-bottom:6px;}
+  .rose-head{display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:pointer;}
+  .rose-name{font-size:13px; font-weight:700;}
+  .rose-name.me{color:var(--amber);}
+  .rose-name-input{background:transparent; border:none; border-bottom:1px dashed var(--line); color:var(--text);
+    font-size:13px; font-weight:700; width:100px; outline:none;}
+  .rose-stats{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--amber); display:flex; gap:8px;}
+  .rose-stats b{color:var(--text);}
+  .rose-slots{display:flex; gap:6px; margin-top:6px;}
+  .rose-slot{flex:1; text-align:center; background:var(--surface); border-radius:4px; padding:3px 0; font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--text-dim);}
+  .rose-slot.full{color:var(--green); font-weight:700;}
+  .rose-players{display:none; margin-top:8px; border-top:1px solid var(--line); padding-top:8px;}
+  .rose-players.open{display:block;}
+  .rose-player-row{display:flex; justify-content:space-between; font-size:11.5px; padding:3px 0; color:var(--text-dim);}
+  .rose-player-row b{color:var(--text); font-weight:500;}
+  .rose-player-row .mono{color:var(--amber);}
+
+  /* HIDE-TAKEN TOGGLE + SHOW-TAKEN LINK */
+  .list-controls{display:flex; align-items:center; justify-content:space-between; margin:10px 14px 0; gap:8px;}
+  .toggle-wrap{display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-dim); cursor:pointer; user-select:none;}
+  .toggle-switch{width:30px; height:17px; border-radius:9px; background:var(--line); position:relative; flex-shrink:0; transition:background .15s;}
+  .toggle-switch::after{content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; border-radius:50%; background:var(--text-dim); transition:transform .15s, background .15s;}
+  .toggle-switch.on{background:var(--green);}
+  .toggle-switch.on::after{transform:translateX(13px); background:#0A1410;}
+  .show-taken-link{font-size:11px; color:var(--text-dim); text-decoration:underline; cursor:pointer; background:none; border:none; padding:0;}
+
+  /* TIER HEADER SCARCITY */
+  .tier-header{display:flex; align-items:baseline; justify-content:space-between;}
+  .tier-scarcity{font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim);}
+  .tier-scarcity.low{color:var(--red); font-weight:700;}
+
+  /* AFFARE BADGE */
+  .p-affare{display:inline-flex; align-items:center; gap:2px; font-size:9px; font-weight:700; color:var(--amber);
+    background:rgba(242,183,5,0.14); border:1px solid rgba(242,183,5,0.4); padding:1px 5px; border-radius:4px; margin-top:2px;}
+  .p-intel{display:flex; gap:4px; flex-wrap:wrap; margin-top:4px;}
+  .intel-tag{font-size:8px; line-height:1; font-weight:700; padding:2px 5px; border-radius:4px; border:1px solid var(--line);
+    color:var(--text-dim); background:var(--surface2); text-transform:uppercase; letter-spacing:.035em;}
+  .intel-tag.affare{color:var(--amber); border-color:rgba(242,183,5,.45);}
+  .intel-tag.cliff{color:#E5A35B; border-color:rgba(229,163,91,.45);}
+  .intel-tag.press{color:#D98479; border-color:rgba(192,72,58,.45);}
+  .intel-tag.rig{color:var(--gold);border-color:rgba(217,166,46,.55);background:rgba(217,166,46,.08);}
+  .decision-box{width:100%; display:grid; grid-template-columns:1fr; gap:5px; margin-bottom:2px;}
+  .decision-cell{background:var(--surface2); border:1px solid var(--line); border-radius:5px; padding:6px 7px; min-width:0;}
+  .decision-lbl{font-size:8px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;}
+  .decision-val{font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+  /* BUDGET DINAMICO PANEL */
+  .budget-row{display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-top:1px solid var(--line); font-size:12.5px;}
+  .budget-row:first-of-type{border-top:none;}
+  .budget-role{min-width:38px; font-weight:700; font-size:11px;}
+  .budget-mid{flex:1; text-align:center; color:var(--text-dim); font-size:10.5px;}
+  .budget-slot{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--amber); font-size:14px; min-width:56px; text-align:right;}
+
+  /* SUGGERIMENTI CHIAMATA */
+  .suggest-panel{margin:10px 14px 0; background:var(--surface); border:1px solid var(--amber); border-radius:8px; padding:10px 12px;}
+  .suggest-header{font-size:12px; font-weight:700; color:var(--amber); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;}
+  .suggest-row{display:flex; align-items:center; gap:8px; padding:7px 0; border-top:1px solid var(--line);}
+  .suggest-row:first-of-type{border-top:none;}
+  .suggest-namewrap{flex:1; min-width:0;}
+  .suggest-name{font-size:13.5px; font-weight:600;}
+  .suggest-team{font-size:10px; color:var(--text-dim); font-weight:400; text-transform:uppercase;}
+  .suggest-tags{display:flex; gap:4px; margin-top:6px; flex-wrap:wrap;}
+  .suggest-tag{font-size:8.5px; font-weight:700; color:var(--text-dim); background:var(--surface2); border:1px solid var(--line);
+    padding:1px 5px; border-radius:4px; text-transform:uppercase; letter-spacing:0.03em;}
+  .suggest-price{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:16px; color:var(--amber); flex-shrink:0;}
+  .gk-suggest-card{padding:9px 0 10px; border-top:1px solid var(--line);}
+  .gk-suggest-card:first-of-type{border-top:none;}
+  .gk-suggest-head{display:flex; align-items:center; gap:8px; margin-bottom:7px;}
+  .gk-suggest-head .suggest-namewrap{flex:1;}
+  .gk-pairs{display:grid; gap:5px; margin-left:16px;}
+  .gk-pair{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface2); border:1px solid var(--line); border-radius:5px; padding:6px 8px;}
+  .gk-pair-left{min-width:0; flex:1; text-align:left;}
+  .gk-pair-label{font-size:8px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:2px;}
+  .gk-pair-names{font-size:10.5px; color:var(--text); text-align:left;}
+  .gk-pair-price{font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:var(--amber); min-width:42px; text-align:right; flex-shrink:0;}
+  .gk-pair-price-sub{font-size:8px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-top:1px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>Regia Asta</h1>
+    <span class="tag">Fantacalcio 26/27</span>
+  </div>
+
+  <div class="scoreboard">
+    <div class="sb-cell">
+      <div class="lbl">Speso</div>
+      <div class="val" id="spesoVal">0</div>
+    </div>
+    <div class="sb-cell" id="rimanenteCell">
+      <div class="lbl">Rimanente</div>
+      <div class="val" id="rimanenteVal">500</div>
+    </div>
+  </div>
+
+  <div class="roles-strip" id="rolesStrip"></div>
+</header>
+
+
+<details class="strategy" id="strategyPanel">
+  <summary>Strategia <span class="arrow">▸</span></summary>
+  <div id="strategyBody"></div>
+</details>
+
+<details class="strategy" id="rosePanel">
+  <summary>Rose <span class="arrow">▸</span></summary>
+  <div id="roseBody"></div>
+</details>
+
+<div class="suggest-panel">
+  <div class="suggest-header">Priorità acquisto — <span id="suggestRoleLabel"></span></div>
+  <div id="suggestBody"></div>
+</div>
+
+<div class="search-wrap">
+  <input type="text" id="searchInput" placeholder="Cerca giocatore...">
+</div>
+<div class="list-controls">
+  <div class="toggle-wrap" id="hideTakenToggle">
+    <div class="toggle-switch" id="hideTakenSwitch"></div>
+    <span>Nascondi presi</span>
+  </div>
+</div>
+
+<main id="main"></main>
+
+<footer>
+  <span class="status" id="saveStatus">—</span>
+  <button id="resetBtn">Reset asta</button>
+</footer>
+
+<script>
+const ROLES = {
+  portieri: {label:'POR', full:'Portieri', slots:3},
+  difensori: {label:'DIF', full:'Difensori', slots:8},
+  centrocampisti: {label:'CEN', full:'Centrocampisti', slots:8},
+  attaccanti: {label:'ATT', full:'Attaccanti', slots:6}
+};
+
+// Preferiti personali: mostrati con una stella accanto al nome.
+const FAVORITES = {
+  portieri: new Set(["Carnesecchi"]),
+  difensori: new Set(["Miranda J.", "Jimenez", "Bisseck", "Kalulu", "Gila", "Mangas", "Di Lorenzo", "Valeri", "Mancini", "Solet", "Vojvoda", "Theate"]),
+  centrocampisti: new Set(["Ederson", "Cambiaghi", "Baturina", "Ndour", "Njie", "Calò", "Baldanzi", "Calhanoglu", "Diouf", "Conceicao", "Taylor", "Zaccagni", "Isaksen", "McTominay", "Bernabè", "Volpato", "Cacciamani", "Vlasic", "Goncalves P.", "Ekkelenkamp"]),
+  attaccanti: new Set(["De Ketelaere", "Maldini", "Diao", "Kvernadze", "Thuram", "Goncalo Ramos", "Pinamonti", "Alisson Santos", "Castro"])
+};
+function favStar(role, name){
+  return FAVORITES[role] && FAVORITES[role].has(name) ? '<span class="fav-star" title="Preferito">★</span>' : '';
+}
+
+// Infortuni ATTUALI: dato separato da INF, che misura invece lo storico 24/25 + 25/26.
+// Stato infortuni aggiornato al 02/09/2026.
+const CURRENT_INJURED = {"Kristensen":{"tipo":"Trauma/distorsione alla caviglia","rientro":"In dubbio per la 3ª giornata"},"Orsolini":{"tipo":"Risentimento ai flessori della coscia sinistra","rientro":"Tempi da valutare; assente nel prossimo turno"},"Spence":{"tipo":"Ritardo di condizione","rientro":"In dubbio fino alla 5ª giornata"},"Cambiaso":{"tipo":"Problema alla caviglia","rientro":"In dubbio per la 3ª giornata"},"McKennie":{"tipo":"Affaticamento muscolare alla gamba","rientro":"In dubbio per la 3ª giornata"},"Yildiz":{"tipo":"Frattura del V metatarso del piede sinistro","rientro":"Tra fine novembre e la 13ª giornata"},"Geubbels":{"tipo":"Distorsione alla caviglia","rientro":"Tempi da valutare; fuori nel prossimo turno"},"Varela G.":{"tipo":"Problema muscolare all'adduttore","rientro":"Indisponibile per la 3ª giornata"},"McTominay":{"tipo":"Intervento di ablazione per lieve aritmia benigna","rientro":"Indicativamente dalla 6ª giornata / inizio ottobre"},"Ndicka":{"tipo":"Infiammazione/fastidio all'adduttore","rientro":"In dubbio per la 3ª giornata"},"Casadei":{"tipo":"Affaticamento muscolare alla gamba","rientro":"In dubbio per la 3ª giornata"},"Zaniolo":{"tipo":"Lesione al bicipite femorale della coscia destra","rientro":"Seconda metà di settembre / circa 6ª giornata"}};
+
+function currentInjuryHtml(name){
+  return CURRENT_INJURED[name]
+    ? `<span class="current-injury" aria-label="Infortunato">✚</span>`
+    : '';
+}
+
+function currentInjuryPanelHtml(name){
+  const x = CURRENT_INJURED[name];
+  if(!x) return '';
+  return `<div class="decision-cell injury-detail">
+    <div class="decision-lbl">✚ INFORTUNIO</div>
+    <div class="decision-val injury-detail-val">
+      <b>${x.tipo}</b><br>
+      <span>Rientro: ${x.rientro}</span>
+    </div>
+  </div>`;
+}
+
+/* === DATI: listone definitivo + prezzi finali calibrati sul video FantaLab del 03/09/2026. €€ IDEALE usa il prezzo consigliato del video quando disponibile; gli altri nomi sono riallineati per ruolo/fascia. PMA influenza solo moderatamente €€ MAX. FVM ufficiale / 2 (budget lega 500). === */
+// Partite saltate per infortunio nelle stagioni 24/25 + 25/26 (fonte: Transfermarkt).
+// I giocatori verificati mostrano le partite saltate; quelli senza injury history verificata mostrano “-”.
+const INJURY_MISSED = {
+  "Vicario":0,
+  "Carnesecchi":3,
+  "Svilar":0,
+  "Milinkovic-Savic V.":0,
+  "Butez":0,
+  "Maignan":2,
+  "Meret":28,
+  "Mandas":0,
+  "Skorupski":0,
+  "Martinez Jo.":0,
+  "Di Gregorio":0,
+  "Thiam":0,
+  "De Gea":1,
+  "Falcone":0,
+  "Stankovic F.":0,
+  "Palmisani":0,
+  "Desplanches":0,
+  "Provedel":0,
+  "Daffara":0,
+  "Okoye":0,
+  "Caprile":0,
+  "Perin":0,
+  "Bijlow":0,
+  "Muric":0,
+  "Turati":0,
+  "Terracciano":0,
+  "Motta":0,
+  "Corvi":0,
+  "Montipò":0,
+  
+  "Sportiello":0,
+  "Happonen":0,
+  "Pessina Mas.":0,
+  "Sherri":0,
+  "Tornqvist":0,
+  "Vigorito":0,
+  "Christensen O.":0,
+  "Lezzerini":0,
+  "Lolic":0,
+  "Sommariva":0,
+  "Stolz":0,
+  "Di Gennaro":0,
+  "Pinsoglio":0,
+  "Renzetti":0,
+  "Torriani":0,
+  "Pizzignacco":0,
+  "Strajnar":0,
+  "Contini":0,
+  "De Marzi":0,
+  "Gollini":0,
+  "Russo A.":0,
+  "Mascardi":0,
+  "Siviero":0,
+  "Padelli":0,
+  "Piana":0,
+  "Grandi":0,
+  "Pozzi":0,
+  "Vismara":0,
+  "Satalino":0,
+  "Penev":0,
+  "Pisseri":0,
+  "Radunovic":0,
+  "Dimarco":8,
+  "Bremer":71,
+  "Bisseck":11,
+  "Wesley":14,
+  "Mancini":2,
+  "Bastoni":3,
+  "Pavlovic":2,
+  "Akanji":18,
+  "Spinazzola":13,
+  "Obrador":0,
+  "Ostigard":10,
+  "Solet":3,
+  "Scalvini":40,
+  "Di Lorenzo":12,
+  "Rrahmani":22,
+  "Kempf":4,
+  "Molina":5,
+  "Kalulu":7,
+  "Chalobah":15,
+  "Couto":9,
+  "Hermoso":27,
+  "Dragusin":60,
+  "Ndicka":3,
+  "Cambiaso":11,
+  "Ramon":8,
+  "Vojvoda":0,
+  "Zappacosta":8,
+  "Spence":12,
+  "Zortea":3,
+  "Bernasconi":0,
+  "Valeri":6,
+  "Bartesaghi":0,
+  "Birindelli":0,
+  "Tiago Gabriel":0,
+  "Valle":0,
+  "Gila":0,
+  "Delprato":0,
+  "Norton-Cuffy":0,
+  "Gabbia":0,
+  "Idzes":0,
+  "Circati":0,
+  "Kelly":0,
+  "Comuzzo":0,
+  "Zappa":0,
+  "Obert":0,
+  "Kristensen":0,
+  "Stones":0,
+  "Vazquez":0,
+  "Gallo":0,
+  "Kaiki":0,
+  "Doekhi":0,
+  "Koulierakis":0,
+  "Viery":0,
+  "Jimenez":0,
+  "Gaspar":0,
+  "Valdepenas":0,
+  "Mitaj":0,
+  "Cuenca":0,
+  "Pedersen":8,
+  "Bella-Kotchap":0,
+  "Ahanor":0,
+  "Mangas":0,
+  "Bracaglia":0,
+  "Correia":0,
+  "Schingstienne":0,
+  "Zè Pedro":0,
+  "Elmas":10,
+  "Romano":0,
+  "McTominay":12,
+  "Calhanoglu":32,
+  "Orsolini":9,
+  "Nico Paz":2,
+  "Pulisic":15,
+  "De Bruyne":43,
+  "Baturina":1,
+  "Rabiot":7,
+  "Da Cunha":0,
+  "Modric":0,
+  "Barella":10,
+  "Zambo Anguissa":0,
+  "Zaniolo":0,
+  "Mastantuono":0,
+  "Saelemaekers":0,
+  "Rowe":0,
+  "Atta":10,
+  "Zielinski":19,
+  "Vlasic":2,
+  "Taylor":0,
+  "Vergara":0,
+  "McKennie":0,
+  "Conceicao":0,
+  "Manu Koné":0,
+  "Thorstvedt":0,
+  "Zaccagni":0,
+  "Politano":0,
+  "Isaksen":0,
+  "Gudmundsson":0,
+  "Frattesi":9,
+  "Ederson":10,
+  "Bernabè":20,
+  "Diouf":0,
+  "Cristante":0,
+  "Mandragora":0,
+  "Perrone":10,
+  "Sucic":0,
+  "Berisha":0,
+  "Samardzic":0,
+  "Casadei":0,
+  "Colpani":0,
+  "Alajbegovic":0,
+  "Baldanzi":15,
+  "Gaetano":0,
+  "Volpato":10,
+  "Locatelli":0,
+  "Pisilli":0,
+  "Fazzini":0,
+  "Fagioli":0,
+  "Lobotka":0,
+  "Frendrup":0,
+  "Basic":0,
+  "Ndour":0,
+  "Oulai":0,
+  "Busio":0,
+  "Kike Perez":0,
+  "Keita":0,
+  "Liberali":0,
+  "Karlstrom":0,
+  "Adzic":0,
+  "Amondarain":0,
+  "Schmid":0,
+  "Calò":0,
+  "Unai Gomez":0,
+  "Cacciamani":0,
+  "Meichtry":0,
+  "Douglas Luiz":0,
+  "Traorè":0,
+  "Malen":2,
+  "Lautaro Martinez":22,
+  "Thuram":18,
+  "Kolo Muani":10,
+  "Scamacca":71,
+  "Hojlund":12,
+  "Dybala":26,
+  "Goncalo Ramos":20,
+  "Yildiz":3,
+  "Douvikas":0,
+  "Berardi":0,
+  "Davis":0,
+  "Kean":28,
+  "Boga":0,
+  "Dovbyk":43,
+  "Pio Esposito":0,
+  "Raspadori":0,
+  "Laurientè":0,
+  "Simeone":5,
+  "Krstovic":0,
+  "Castro":0,
+  "De Ketelaere":16,
+  "Alisson Santos":0,
+  "Elphege":0,
+  "Pinamonti":0,
+  "Bonny":5,
+  "Che Adams":0,
+  "Bowie":0,
+  "Zapata":0,
+  "Colombo":0,
+  "El Bilal Touré":0,
+  "Mendy":0,
+  "Piccoli":0,
+  "Diao":0,
+  "Vitinha":0,
+  "Maldini":0,
+  "Yeboah":0,
+  "Akor Adams":17,
+  "Jonathan David":0,
+  "Pellegrino":0,
+  "David Romero":0,
+  "Mota":0,
+  "Neres":0,
+  "Cutrone":0,
+  "Kvernadze":0,
+  "Ghedjemis":2,
+  "Raimondo":0,
+  "Kevin Carlos":0,
+  "Geubbels":0
+};
+
+// Dati verificati direttamente su schede Transfermarkt / risultati indicizzati.
+// Gli altri valori 0 indicano nessuna assenza 24/25-25/26 trovata nel dataset indicizzato e sono mostrati in grigio.
+const INJURY_VERIFIED = new Set(["Akanji", "Akor Adams", "Atta", "Baldanzi", "Barella", "Bartesaghi", "Bastoni", "Baturina", "Bernabè", "Bisseck", "Bonny", "Bremer", "Calhanoglu", "Cambiaso", "Carnesecchi", "Chalobah", "Couto", "De Bruyne", "De Gea", "De Ketelaere", "Di Lorenzo", "Dimarco", "Dovbyk", "Dragusin", "Dybala", "Ederson", "Elmas", "Frattesi", "Ghedjemis", "Goncalo Ramos", "Hermoso", "Hojlund", "Kalulu", "Kean", "Kempf", "Kolo Muani", "Lautaro Martinez", "Maignan", "Malen", "Mancini", "McTominay", "Meret", "Molina", "Ndicka", "Nico Paz", "Njie", "Orsolini", "Ostigard", "Pavlovic", "Pedersen", "Perrone", "Pulisic", "Rabiot", "Ramon", "Rrahmani", "Scalvini", "Scamacca", "Simeone", "Solet", "Spence", "Spinazzola", "Svilar", "Thuram", "Valeri", "Vlasic", "Vojvoda", "Volpato", "Wesley", "Yildiz", "Zappacosta", "Zielinski", "Zortea"]);
+
+function injuryIndex(name){
+  const missed = Object.prototype.hasOwnProperty.call(INJURY_MISSED,name) ? INJURY_MISSED[name] : 0;
+  const verified = INJURY_VERIFIED.has(name);
+  // Curva saturante 0-10: 5 gare ≈ 2.8, 10 ≈ 4.9, 20 ≈ 7.4, 30 ≈ 8.6.
+  const index = Math.round((10 * (1 - Math.exp(-missed/15))) * 10) / 10;
+  const cls = verified ? (index < 3.5 ? 'inj-low' : (index < 6.5 ? 'inj-mid' : 'inj-high')) : 'inj-na';
+  return {missed, index, cls, verified};
+}
+
+function injuryMetricHtml(name){
+  const x=injuryIndex(name);
+  const display = x.verified ? x.missed : '-';
+  const title = x.verified
+    ? `${x.missed} partite saltate per infortunio tra 24/25 e 25/26 (Transfermarkt)`
+    : `Injury history non verificata per le stagioni 24/25 e 25/26`;
+  return `<div class="p-metric p-metric-injury ${x.cls}" title="${title}"><div class="p-metric-label">INF</div><div class="p-metric-value">${display}</div></div>`;
+}
+
+function injuryInlineHtml(name){
+  const x=injuryIndex(name);
+  const display = x.verified ? x.missed : '-';
+  const title = x.verified
+    ? `${x.missed} partite saltate per infortunio tra 24/25 e 25/26 (Transfermarkt)`
+    : `Injury history non verificata per le stagioni 24/25 e 25/26`;
+  return `<span class="${x.cls}" title="${title}">INF ${display}</span>`;
+}
+
+// TIT: stima stagionale per tutti i ruoli aggiornata al 03/09/2026.
+// Stima: gerarchie Guida all'Asta (quando disponibile) + utilizzo prime 2 giornate + probabili 3a giornata + gerarchie post-mercato.
+const TITOLARITA = {"Martinez Jo.":60,"Akanji":80,"Stones":50,"Bastoni":90,"Diouf":55,"Barella":95,"Calhanoglu":90,"Zielinski":60,"Dimarco":95,"Lautaro Martinez":95,"Thuram":80,"Provedel":40,"Di Gennaro":2,"Bisseck":75,"Sucic":50,"Frattesi":90,"Pio Esposito":55,"Bonny":30,"Thiam":95,"Birindelli":45,"Pessina":90,"Mangas":90,"Colpani":85,"Mota":35,"Cutrone":40,"Strajnar":3,"Okoye":95,"Solet":90,"Vojvoda":90,"Karlstrom":90,"Zaniolo":80,"Davis":95,"Padelli":3,"Piana":2,"Butez":95,"Chalobah":90,"Ramon":90,"Kaiki":40,"Perrone":50,"Da Cunha":90,"Diao":90,"Nico Paz":95,"Baturina":85,"Douvikas":45,"Tornqvist":5,"Vigorito":3,"Couto":65,"Kempf":35,"Valle":70,"Bijlow":95,"Ostigard":90,"Vazquez":90,"Frendrup":95,"Baldanzi":90,"Colombo":90,"Sommariva":3,"Stolz":3,"Mitaj":40,"Traorè":55,"Meichtry":40,"Vitinha":60,"Meret":65,"Di Lorenzo":95,"Rrahmani":90,"Spinazzola":70,"Zambo Anguissa":90,"Lobotka":90,"McTominay":95,"Politano":80,"Hojlund":95,"Alisson Santos":85,"Milinkovic-Savic V.":35,"Contini":3,"Vergara":45,"De Bruyne":65,"Neres":50,"Delprato":90,"Valeri":90,"Bernabè":90,"Keita":90,"Pellegrino":45,"El Bilal Touré":90,"Corvi":70,"Daffara":30,"Elphege":45,"Caprile":95,"Zè Pedro":90,"Obert":85,"Fazzini":90,"Mendy":45,"Maldini":90,"Sherri":5,"Palmisani":40,"Bracaglia":90,"Calò":90,"Ghedjemis":90,"Kvernadze":80,"Njie":60,"Raimondo":80,"Desplanches":60,"Kalulu":90,"Bremer":95,"Kelly":50,"Cambiaso":75,"Locatelli":90,"Conceicao":85,"Alajbegovic":50,"Yildiz":85,"Kolo Muani":95,"Pinsoglio":2,"McKennie":45,"Stankovic F.":95,"Schingstienne":85,"Bella-Kotchap":85,"Correia":45,"Busio":90,"Basic":90,"Yeboah":90,"Akor Adams":90,"Grandi":3,"Pozzi":2,"Falcone":95,"Gaspar":90,"Tiago Gabriel":90,"Gallo":90,"Berisha":90,"Geubbels":90,"Elmas":40,"Romano":90,"Carnesecchi":95,"Zappacosta":50,"Scalvini":90,"Bernasconi":85,"Samardzic":75,"Gaetano":75,"Ederson":95,"De Ketelaere":85,"Scamacca":70,"Raspadori":65,"Sportiello":5,"Krstovic":55,"Muric":65,"Missori":90,"Idzes":85,"Thorstvedt":55,"Berardi":85,"Adzic":65,"Laurientè":90,"Pinamonti":90,"Turati":35,"Satalino":3,"Volpato":55,"Bowie":45,"Comuzzo":90,"Cacciamani":65,"Casadei":70,"Vlasic":90,"Simeone":75,"Mascardi":5,"Che Adams":60,"Zapata":55,"Maignan":95,"Gila":90,"Gabbia":45,"Pavlovic":90,"Saelemaekers":45,"Modric":50,"Rabiot":80,"Bartesaghi":80,"Goncalo Ramos":95,"Terracciano":5,"Torriani":3,"Skorupski":95,"Zortea":65,"Orsolini":90,"Rowe":70,"Dovbyk":80,"Happonen":3,"Pessina Mas.":3,"Mandas":95,"Doekhi":80,"Taylor":80,"Zaccagni":95,"Motta":5,"Renzetti":2,"Svilar":95,"Mancini":95,"Ndicka":90,"Hermoso":90,"Manu Koné":90,"Cristante":85,"Wesley":95,"Dybala":75,"Malen":95,"Gollini":5,"De Marzi":2,"Koulierakis":35,"Pisilli":30,"Castro":60,"De Gea":95,"Dragusin":75,"Viery":60,"Valdepenas":55,"Ndour":40,"Oulai":40,"Atta":90,"Mastantuono":75,"Kean":75,"Christensen O.":5,"Lezzerini":3,"Jimenez":60,"Pulisic":75,"Isaksen":50,"Gudmundsson":70,"Mandragora":55,"Fagioli":65,"Kike Perez":90,"Liberali":25,"Amondarain":40,"Unai Gomez":60,"Douglas Luiz":70,"Boga":60,"Piccoli":45,"Perri":85,"Tavares N.":80,"Diego Carlos":85,"Belghali":80,"Miranda J.":75,"Bellanova":70,"De Winter":65,"Theate":60,"Carlos Augusto":35,"Celik":85,"Lucumì":65,"Mora":60,"Ekkelenkamp":90,"Goncalves P.":75,"Gonzalez N.":85,"Kessiè":75,"Jones C.":45,"Bernardeschi":70,"Chukwueze":70,"Cambiaghi":60,"Moreira":40,"Pasalic":50,"Cissè A.":55,"Fitz-Jim":85,"Woltemade":65,"Soulè":40,"Varela G.":75,"Beto":75,"Esposito Se.":55,"Bobcek":70,"Osmajic":40,"Gnonto":40,"Obrador":45,"Molina":60,"Spence":30,"Kristensen":70,"Schmid":70,"Vicario":95,"Montipò":5,"Lolic":5,"Penev":3,"Pisseri":3,"Radunovic":5,"Russo A.":3,"Siviero":3,"David Romero":55,"Kevin Carlos":60,"Grabara":5};
+
+
+const TIT_STAGIONALE = new Set(["Dimarco", "Bremer", "Bisseck", "Wesley", "Mancini", "Pavlovic", "Bastoni", "Akanji", "Spinazzola", "Obrador", "Ostigard", "Solet", "Scalvini", "Rrahmani", "Di Lorenzo", "Kempf", "Molina", "Kalulu", "Chalobah", "Couto", "Hermoso", "Tavares N.", "Dragusin", "Ndicka", "Cambiaso", "Ramon", "Vojvoda", "Zappacosta", "Spence", "Diego Carlos", "Belghali", "Miranda J.", "Bellanova", "Zortea", "De Winter", "Bernasconi", "Bartesaghi", "Valeri", "Birindelli", "Carlos Augusto", "Theate", "Celik", "Lucumì", "Tiago Gabriel", "Valle", "Gila", "Delprato", "Gabbia", "Idzes", "Comuzzo", "Kelly", "Obert", "Stones", "Vazquez", "Doekhi", "Kaiki", "Koulierakis", "Kristensen", "Viery", "Gallo", "Jimenez", "Valdepenas", "Gaspar", "Mitaj", "Bella-Kotchap", "Bracaglia", "Correia", "Mangas", "Schingstienne", "Zè Pedro", "McTominay", "Calhanoglu", "Orsolini", "Nico Paz", "Pulisic", "De Bruyne", "Baturina", "Rabiot", "Mora", "Ekkelenkamp", "Da Cunha", "Modric", "Barella", "Zambo Anguissa", "Zaniolo", "Mastantuono", "Goncalves P.", "Saelemaekers", "Zielinski", "Rowe", "Gonzalez N.", "Vergara", "Atta", "Vlasic", "Taylor", "McKennie", "Conceicao", "Kessiè", "Manu Koné", "Thorstvedt", "Zaccagni", "Frattesi", "Jones C.", "Politano", "Bernardeschi", "Isaksen", "Gudmundsson", "Chukwueze", "Ederson", "Bernabè", "Diouf", "Cristante", "Mandragora", "Cambiaghi", "Perrone", "Sucic", "Berisha", "Elmas", "Njie", "Samardzic", "Casadei", "Colpani", "Alajbegovic", "Moreira", "Baldanzi", "Volpato", "Cissè A.", "Gaetano", "Fitz-Jim", "Pasalic", "Pisilli", "Locatelli", "Fazzini", "Fagioli", "Lobotka", "Romano", "Frendrup", "Basic", "Ndour", "Oulai", "Busio", "Kike Perez", "Keita", "Liberali", "Karlstrom", "Adzic", "Amondarain", "Schmid", "Calò", "Unai Gomez", "Cacciamani", "Meichtry", "Douglas Luiz", "Traorè", "Vicario", "Carnesecchi", "Svilar", "Milinkovic-Savic V.", "Butez", "Maignan", "Meret", "Mandas", "Skorupski", "Martinez Jo.", "Thiam", "Falcone", "De Gea", "Stankovic F.", "Desplanches", "Palmisani", "Provedel", "Daffara", "Okoye", "Caprile", "Perri", "Bijlow", "Muric", "Turati", "Terracciano", "Motta", "Corvi", "Montipò", "Christensen O.", "Contini", "De Marzi", "Di Gennaro", "Gollini", "Grandi", "Happonen", "Lezzerini", "Lolic", "Mascardi", "Padelli", "Penev", "Pessina Mas.", "Piana", "Pinsoglio", "Pisseri", "Pozzi", "Radunovic", "Renzetti", "Russo A.", "Satalino", "Sherri", "Siviero", "Sommariva", "Sportiello", "Stolz", "Strajnar", "Tornqvist", "Torriani", "Vigorito", "Malen", "Lautaro Martinez", "Thuram", "Woltemade", "Kolo Muani", "Scamacca", "Soulè", "Hojlund", "Varela G.", "Dybala", "Douvikas", "Goncalo Ramos", "Yildiz", "Berardi", "Kean", "Davis", "Boga", "Pio Esposito", "Dovbyk", "Raspadori", "Beto", "Laurientè", "Esposito Se.", "Krstovic", "Simeone", "Kvernadze", "De Ketelaere", "Castro", "Bobcek", "Alisson Santos", "Osmajic", "Elphege", "Gnonto", "Pinamonti", "Bonny", "Che Adams", "Bowie", "Zapata", "Colombo", "El Bilal Touré", "Mendy", "Diao", "Piccoli", "Vitinha", "Akor Adams", "Yeboah", "Maldini", "Pellegrino", "David Romero", "Neres", "Mota", "Cutrone", "Raimondo", "Kevin Carlos", "Ghedjemis", "Geubbels", "Grabara"]);
+function titolaritaValue(name){
+  return Object.prototype.hasOwnProperty.call(TITOLARITA,name) ? TITOLARITA[name] : null;
+}
+
+function titolaritaMetricHtml(name){
+  const v=titolaritaValue(name);
+  const shown=v==null?'—':`${v}%`;
+  const seasonal=TIT_STAGIONALE.has(name);
+  const label=seasonal?'TIT':'TIT G1';
+  const title=v==null
+    ? 'Percentuale non disponibile'
+    : (seasonal ? `Titolarità stagionale stimata: ${v}%` : `Titolarità prossima giornata: ${v}%`);
+  return `<div class="p-metric p-metric-starter" title="${title}"><div class="p-metric-label">${label}</div><div class="p-metric-value">${shown}</div></div>`;
+}
+
+function titolaritaInlineHtml(name){
+  const v=titolaritaValue(name);
+  const shown=v==null?'—':`${v}%`;
+  const seasonal=TIT_STAGIONALE.has(name);
+  const label=seasonal?'TIT':'TIT G1';
+  const title=v==null
+    ? 'Percentuale non disponibile'
+    : (seasonal ? `Titolarità stagionale stimata: ${v}%` : `Titolarità prossima giornata: ${v}%`);
+  return `<span class="tit-inline" title="${title}">${label} ${shown}</span>`;
+}
+
+const PLAYER_DATA = {"difensori":[{"name":"Dimarco","tier":"TOP","score":9.7,"squadra":"Inter","fvm":120.0,"prezzo":75,"video_price":true},{"name":"Bremer","tier":"TOP","score":9.4,"squadra":"Juventus","fvm":30.0,"prezzo":30,"video_price":true},{"name":"Bisseck","tier":"SEMITOP","score":9.2,"squadra":"Inter","fvm":18.0,"prezzo":21,"video_price":true},{"name":"Wesley","tier":"TOP","score":8.5,"squadra":"Roma","fvm":43.5,"prezzo":38,"video_price":true},{"name":"Mancini","tier":"SEMITOP","score":8.5,"squadra":"Roma","fvm":25.0,"prezzo":29,"video_price":true},{"name":"Pavlovic","tier":"SEMITOP","score":8.1,"squadra":"Milan","fvm":24.5,"prezzo":20,"video_price":true},{"name":"Bastoni","tier":"TOP","score":8.1,"squadra":"Inter","fvm":21.5,"prezzo":26,"video_price":true},{"name":"Akanji","tier":"SEMITOP","score":8.0,"squadra":"Inter","fvm":23.5,"prezzo":25,"video_price":true},{"name":"Spinazzola","tier":"SEMITOP","score":8.0,"squadra":"Napoli","fvm":12.5,"prezzo":16,"video_price":true},{"name":"Obrador","tier":"LOWCOST_SORPRESE","score":8.0,"squadra":"Sassuolo","fvm":6.5,"prezzo":3,"video_price":false},{"name":"Ostigard","tier":"SEMITOP","score":7.9,"squadra":"Genoa","fvm":20.5,"prezzo":17,"video_price":true},{"name":"Solet","tier":"SEMITOP","score":7.8,"squadra":"Udinese","fvm":23.0,"prezzo":27,"video_price":true},{"name":"Scalvini","tier":"SEMITOP","score":7.8,"squadra":"Atalanta","fvm":14.0,"prezzo":16,"video_price":false},{"name":"Rrahmani","tier":"SEMITOP","score":7.7,"squadra":"Napoli","fvm":25.5,"prezzo":28,"video_price":true},{"name":"Di Lorenzo","tier":"SEMITOP","score":7.7,"squadra":"Napoli","fvm":19.5,"prezzo":22,"video_price":true},{"name":"Kempf","tier":"LOWCOST_TITOLARI","score":7.6,"squadra":"Como","fvm":6.5,"prezzo":7,"video_price":true},{"name":"Molina","tier":"SEMITOP","score":7.5,"squadra":"Roma","fvm":39.0,"prezzo":30,"video_price":true},{"name":"Kalulu","tier":"SEMITOP","score":7.5,"squadra":"Juventus","fvm":23.5,"prezzo":22,"video_price":true},{"name":"Chalobah","tier":"SEMITOP","score":7.5,"squadra":"Como","fvm":16.0,"prezzo":20,"video_price":true},{"name":"Couto","tier":"SEMITOP","score":7.5,"squadra":"Como","fvm":12.5,"prezzo":10,"video_price":true},{"name":"Hermoso","tier":"LOWCOST_TITOLARI","score":7.5,"squadra":"Roma","fvm":13.0,"prezzo":12,"video_price":true},{"name":"Tavares N.","tier":"SEMITOP","score":7.4,"squadra":"Lazio","prezzo":4,"fvm":12.5,"video_price":true},{"name":"Dragusin","tier":"LOWCOST_TITOLARI","score":7.3,"squadra":"Fiorentina","fvm":10.0,"prezzo":7,"video_price":true},{"name":"Ndicka","tier":"SEMITOP","score":7.2,"squadra":"Roma","fvm":21.0,"prezzo":18,"video_price":true},{"name":"Cambiaso","tier":"SEMITOP","score":7.2,"squadra":"Juventus","fvm":9.0,"prezzo":6,"video_price":true},{"name":"Ramon","tier":"SEMITOP","score":7.0,"squadra":"Como","fvm":15.5,"prezzo":18,"video_price":true},{"name":"Vojvoda","tier":"LOWCOST_SORPRESE","score":6.9,"squadra":"Udinese","fvm":9.5,"prezzo":11,"video_price":true},{"name":"Zappacosta","tier":"SEMITOP","score":6.8,"squadra":"Atalanta","fvm":9.5,"prezzo":16,"video_price":true},{"name":"Spence","tier":"SEMITOP","score":6.6,"squadra":"Inter","fvm":18.5,"prezzo":19,"video_price":true},{"name":"Diego Carlos","tier":"LOWCOST_TITOLARI","score":6.6,"squadra":"Parma","prezzo":2,"fvm":13.0,"video_price":true},{"name":"Belghali","tier":"LOWCOST_TITOLARI","score":6.6,"squadra":"Torino","prezzo":5,"fvm":10.0,"video_price":true},{"name":"Miranda J.","tier":"LOWCOST_TITOLARI","score":6.5,"squadra":"Bologna","prezzo":10,"fvm":11.5,"video_price":true},{"name":"Bellanova","tier":"LOWCOST_SORPRESE","score":6.5,"squadra":"Atalanta","prezzo":8,"fvm":8.5,"video_price":false},{"name":"Zortea","tier":"LOWCOST_TITOLARI","score":6.5,"squadra":"Bologna","fvm":9.5,"prezzo":2,"video_price":true},{"name":"De Winter","tier":"LOWCOST_TITOLARI","score":6.4,"squadra":"Milan","prezzo":4,"fvm":10.0,"video_price":true},{"name":"Bernasconi","tier":"LOWCOST_SORPRESE","score":6.4,"squadra":"Atalanta","fvm":9.0,"prezzo":8,"video_price":true},{"name":"Bartesaghi","tier":"LOWCOST_TITOLARI","score":6.3,"squadra":"Milan","fvm":11.0,"prezzo":8,"video_price":true},{"name":"Valeri","tier":"LOWCOST_TITOLARI","score":6.3,"squadra":"Parma","fvm":11.0,"prezzo":7,"video_price":false},{"name":"Birindelli","tier":"LOWCOST_SORPRESE","score":6.3,"squadra":"Monza","fvm":6.0,"prezzo":2,"video_price":true},{"name":"Carlos Augusto","tier":"LOWCOST_SORPRESE","score":6.2,"squadra":"Inter","prezzo":6,"fvm":10.0,"video_price":true},{"name":"Theate","tier":"LOWCOST_TITOLARI","score":6.2,"squadra":"Bologna","prezzo":4,"fvm":10.0,"video_price":true},{"name":"Celik","tier":"LOWCOST_TITOLARI","score":6.2,"squadra":"Juventus","prezzo":11,"fvm":8.0,"video_price":true},{"name":"Lucumì","tier":"LOWCOST_TITOLARI","score":6.1,"squadra":"Juventus","prezzo":6,"fvm":8.5,"video_price":true},{"name":"Tiago Gabriel","tier":"LOWCOST_TITOLARI","score":6.1,"squadra":"Lecce","fvm":10.0,"prezzo":5,"video_price":false},{"name":"Valle","tier":"LOWCOST_TITOLARI","score":6.1,"squadra":"Como","fvm":10.5,"prezzo":9,"video_price":true},{"name":"Gila","tier":"SEMITOP","score":6.0,"squadra":"Milan","fvm":15.5,"prezzo":15,"video_price":true},{"name":"Delprato","tier":"LOWCOST_TITOLARI","score":6.0,"squadra":"Parma","fvm":10.5,"prezzo":3,"video_price":true},{"name":"Gabbia","tier":"LOWCOST_TITOLARI","score":5.9,"squadra":"Milan","fvm":7.5,"prezzo":4,"video_price":true},{"name":"Idzes","tier":"LOWCOST_TITOLARI","score":5.9,"squadra":"Sassuolo","fvm":9.5,"prezzo":1,"video_price":true},{"name":"Comuzzo","tier":"LOWCOST_TITOLARI","score":5.6,"squadra":"Torino","fvm":6.5,"prezzo":3,"video_price":false},{"name":"Kelly","tier":"LOWCOST_TITOLARI","score":5.6,"squadra":"Juventus","fvm":6.0,"prezzo":7,"video_price":true},{"name":"Obert","tier":"LOWCOST_TITOLARI","score":5.4,"squadra":"Cagliari","fvm":7.5,"prezzo":4,"video_price":false},{"name":"Stones","tier":"SEMITOP","score":5.3,"squadra":"Inter","fvm":12.5,"prezzo":7,"video_price":true},{"name":"Vazquez","tier":"LOWCOST_TITOLARI","score":5.3,"squadra":"Genoa","fvm":15.0,"prezzo":12,"video_price":true},{"name":"Doekhi","tier":"LOWCOST_TITOLARI","score":5.3,"squadra":"Lazio","fvm":8.0,"prezzo":7,"video_price":true},{"name":"Kaiki","tier":"LOWCOST_TITOLARI","score":5.3,"squadra":"Como","fvm":6.5,"prezzo":5,"video_price":false},{"name":"Koulierakis","tier":"LOWCOST_SORPRESE","score":5.3,"squadra":"Roma","fvm":7.5,"prezzo":7,"video_price":false},{"name":"Kristensen","tier":"SEMITOP","score":5.3,"squadra":"Atalanta","fvm":10.0,"prezzo":9,"video_price":false},{"name":"Viery","tier":"LOWCOST_SORPRESE","score":5.3,"squadra":"Fiorentina","fvm":6.0,"prezzo":6,"video_price":false},{"name":"Gallo","tier":"LOWCOST_TITOLARI","score":5.3,"squadra":"Lecce","fvm":6.0,"prezzo":4,"video_price":false},{"name":"Jimenez","tier":"LOWCOST_SORPRESE","score":5.1,"squadra":"Fiorentina","fvm":9.0,"prezzo":9,"video_price":true},{"name":"Valdepenas","tier":"LOWCOST_SORPRESE","score":5.0,"squadra":"Fiorentina","fvm":8.0,"prezzo":5,"video_price":true},{"name":"Gaspar","tier":"LOWCOST_TITOLARI","score":5.0,"squadra":"Lecce","fvm":6.0,"prezzo":3,"video_price":true},{"name":"Mitaj","tier":"LOWCOST_SORPRESE","score":5.0,"squadra":"Genoa","fvm":5.0,"prezzo":4,"video_price":false},{"name":"Bella-Kotchap","tier":"LOWCOST_TITOLARI","score":4.7,"squadra":"Venezia","fvm":6.5,"prezzo":3,"video_price":false},{"name":"Bracaglia","tier":"LOWCOST_SORPRESE","score":4.7,"squadra":"Frosinone","fvm":7.5,"prezzo":1,"video_price":true},{"name":"Correia","tier":"LOWCOST_SORPRESE","score":4.6,"squadra":"Venezia","fvm":6.0,"prezzo":5,"video_price":false},{"name":"Mangas","tier":"LOWCOST_SORPRESE","score":4.6,"squadra":"Monza","fvm":7.5,"prezzo":6,"video_price":true},{"name":"Schingstienne","tier":"LOWCOST_SORPRESE","score":4.6,"squadra":"Venezia","fvm":5.0,"prezzo":3,"video_price":false},{"name":"Zè Pedro","tier":"LOWCOST_TITOLARI","score":4.4,"squadra":"Cagliari","fvm":6.5,"prezzo":3,"video_price":false}],"centrocampisti":[{"name":"McTominay","tier":"TOP","score":9.7,"squadra":"Napoli","fvm":110.0,"prezzo":55,"video_price":true},{"name":"Calhanoglu","tier":"TOP","score":9.7,"squadra":"Inter","fvm":121.5,"prezzo":76,"video_price":true},{"name":"Orsolini","tier":"TOP","score":9.5,"squadra":"Bologna","fvm":88.5,"prezzo":45,"video_price":true},{"name":"Nico Paz","tier":"TOP","score":9.2,"squadra":"Como","fvm":122.5,"prezzo":82,"video_price":true},{"name":"Pulisic","tier":"TOP","score":9.2,"squadra":"Milan","fvm":75.0,"prezzo":57,"video_price":true},{"name":"De Bruyne","tier":"TOP","score":9.0,"squadra":"Napoli","fvm":54.0,"prezzo":31,"video_price":true},{"name":"Baturina","tier":"SEMITOP","score":8.7,"squadra":"Como","fvm":52.5,"prezzo":48,"video_price":true},{"name":"Rabiot","tier":"TOP","score":8.6,"squadra":"Milan","fvm":72.5,"prezzo":35,"video_price":true},{"name":"Mora","tier":"SEMITOP","score":8.3,"squadra":"Roma","prezzo":39,"fvm":50.0,"video_price":true},{"name":"Ekkelenkamp","tier":"SEMITOP","score":8.1,"squadra":"Udinese","prezzo":22,"fvm":28.5,"video_price":true,"pmaPct":5.0},{"name":"Da Cunha","tier":"SEMITOP","score":7.8,"squadra":"Como","fvm":43.5,"prezzo":29,"video_price":true},{"name":"Modric","tier":"SEMITOP","score":7.8,"squadra":"Milan","fvm":22.5,"prezzo":12,"video_price":true},{"name":"Barella","tier":"SEMITOP","score":7.6,"squadra":"Inter","fvm":40.5,"prezzo":33,"video_price":true},{"name":"Zambo Anguissa","tier":"LOWCOST_TITOLARI","score":7.6,"squadra":"Napoli","fvm":20.5,"prezzo":7,"video_price":true},{"name":"Zaniolo","tier":"TOP","score":7.5,"squadra":"Udinese","fvm":40.0,"prezzo":26,"video_price":true},{"name":"Mastantuono","tier":"SEMITOP","score":7.5,"squadra":"Fiorentina","fvm":25.0,"prezzo":28,"video_price":true},{"name":"Goncalves P.","tier":"SEMITOP","score":7.5,"squadra":"Fiorentina","prezzo":28,"fvm":25.0,"video_price":true},{"name":"Saelemaekers","tier":"LOWCOST_TITOLARI","score":7.5,"squadra":"Milan","fvm":17.5,"prezzo":14,"video_price":true},{"name":"Zielinski","tier":"SEMITOP","score":7.5,"squadra":"Inter","fvm":22.5,"prezzo":31,"video_price":true},{"name":"Rowe","tier":"SEMITOP","score":7.5,"squadra":"Atalanta","fvm":20.0,"prezzo":26,"video_price":true,"pmaPct":4.0},{"name":"Gonzalez N.","tier":"SEMITOP","score":7.4,"squadra":"Juventus","prezzo":25,"fvm":22.5,"video_price":true},{"name":"Vergara","tier":"LOWCOST_SORPRESE","score":7.4,"squadra":"Napoli","fvm":17.5,"prezzo":8,"video_price":true},{"name":"Atta","tier":"SEMITOP","score":7.3,"squadra":"Fiorentina","fvm":39.0,"prezzo":32,"video_price":true},{"name":"Vlasic","tier":"SEMITOP","score":7.3,"squadra":"Torino","fvm":36.5,"prezzo":27,"video_price":true,"pmaPct":5.0},{"name":"Taylor","tier":"SEMITOP","score":7.3,"squadra":"Lazio","fvm":26.5,"prezzo":16,"video_price":true},{"name":"McKennie","tier":"SEMITOP","score":7.2,"squadra":"Juventus","fvm":35.0,"prezzo":29,"video_price":true},{"name":"Conceicao","tier":"LOWCOST_TITOLARI","score":7.2,"squadra":"Juventus","fvm":34.0,"prezzo":34,"video_price":true},{"name":"Kessiè","tier":"SEMITOP","score":7.2,"squadra":"Atalanta","prezzo":13,"fvm":23.5,"video_price":true},{"name":"Manu Koné","tier":"LOWCOST_TITOLARI","score":7.2,"squadra":"Roma","fvm":21.0,"prezzo":17,"video_price":true},{"name":"Thorstvedt","tier":"LOWCOST_TITOLARI","score":7.2,"squadra":"Sassuolo","fvm":19.5,"prezzo":4,"video_price":true},{"name":"Zaccagni","tier":"SEMITOP","score":7.1,"squadra":"Lazio","fvm":43.5,"prezzo":36,"video_price":true},{"name":"Frattesi","tier":"SEMITOP","score":7.0,"squadra":"Lazio","fvm":37.5,"prezzo":30,"video_price":true,"pmaPct":8.0},{"name":"Jones C.","tier":"SEMITOP","score":7.0,"squadra":"Inter","prezzo":18,"fvm":23.5,"video_price":true,"pmaPct":3.0},{"name":"Politano","tier":"LOWCOST_TITOLARI","score":7.0,"squadra":"Napoli","fvm":18.5,"prezzo":7,"video_price":true},{"name":"Bernardeschi","tier":"SEMITOP","score":7.0,"squadra":"Bologna","prezzo":19,"fvm":13.5,"video_price":true},{"name":"Isaksen","tier":"LOWCOST_SORPRESE","score":7.0,"squadra":"Lazio","fvm":11.0,"prezzo":3,"video_price":true},{"name":"Gudmundsson","tier":"SEMITOP","score":6.9,"squadra":"Lazio","fvm":20.0,"prezzo":26,"video_price":true,"pmaPct":4.0},{"name":"Chukwueze","tier":"SEMITOP","score":6.9,"squadra":"Milan","prezzo":16,"fvm":11.0,"video_price":true,"pmaPct":2.0},{"name":"Ederson","tier":"LOWCOST_TITOLARI","score":6.8,"squadra":"Atalanta","fvm":23.0,"prezzo":16,"video_price":true},{"name":"Bernabè","tier":"LOWCOST_TITOLARI","score":6.8,"squadra":"Parma","fvm":17.0,"prezzo":10,"video_price":true},{"name":"Diouf","tier":"LOWCOST_SORPRESE","score":6.8,"squadra":"Inter","fvm":21.5,"prezzo":25,"video_price":true,"pmaPct":4.0},{"name":"Cristante","tier":"LOWCOST_TITOLARI","score":6.8,"squadra":"Roma","fvm":14.5,"prezzo":1,"video_price":true},{"name":"Mandragora","tier":"LOWCOST_TITOLARI","score":6.8,"squadra":"Torino","fvm":11.5,"prezzo":2,"video_price":true},{"name":"Cambiaghi","tier":"LOWCOST_TITOLARI","score":6.8,"squadra":"Bologna","prezzo":7,"fvm":12.5,"video_price":true},{"name":"Perrone","tier":"LOWCOST_TITOLARI","score":6.7,"squadra":"Como","fvm":17.0,"prezzo":2,"video_price":true},{"name":"Sucic","tier":"LOWCOST_TITOLARI","score":6.7,"squadra":"Inter","fvm":10.5,"prezzo":2,"video_price":true},{"name":"Berisha","tier":"LOWCOST_SORPRESE","score":6.6,"squadra":"Lecce","fvm":6.0,"prezzo":5,"video_price":false},{"name":"Elmas","tier":"LOWCOST_SORPRESE","score":6.6,"squadra":"Atalanta","fvm":11.0,"prezzo":1,"video_price":true},{"name":"Njie","tier":"LOWCOST_SORPRESE","score":6.5,"squadra":"Fiorentina","prezzo":2,"fvm":14.0,"video_price":true},{"name":"Samardzic","tier":"SEMITOP","score":6.4,"squadra":"Atalanta","fvm":22.0,"prezzo":16,"video_price":true},{"name":"Casadei","tier":"LOWCOST_TITOLARI","score":6.4,"squadra":"Torino","fvm":13.5,"prezzo":6,"video_price":true},{"name":"Colpani","tier":"LOWCOST_SORPRESE","score":6.4,"squadra":"Monza","fvm":7.5,"prezzo":2,"video_price":true},{"name":"Alajbegovic","tier":"SEMITOP","score":6.3,"squadra":"Juventus","fvm":21.0,"prezzo":28,"video_price":true,"pmaPct":4.0},{"name":"Moreira","tier":"LOWCOST_SORPRESE","score":6.3,"squadra":"Milan","prezzo":15,"fvm":22.5,"video_price":true,"pmaPct":3.0},{"name":"Baldanzi","tier":"LOWCOST_SORPRESE","score":6.3,"squadra":"Genoa","fvm":14.0,"prezzo":11,"video_price":true},{"name":"Volpato","tier":"LOWCOST_SORPRESE","score":6.3,"squadra":"Sassuolo","fvm":12.5,"prezzo":3,"video_price":true},{"name":"Cissè A.","tier":"LOWCOST_SORPRESE","score":6.2,"squadra":"Milan","prezzo":4,"fvm":12.0,"video_price":true},{"name":"Gaetano","tier":"LOWCOST_TITOLARI","score":6.2,"squadra":"Atalanta","fvm":15.0,"prezzo":5,"video_price":true},{"name":"Fitz-Jim","tier":"LOWCOST_TITOLARI","score":6.2,"squadra":"Torino","prezzo":6,"fvm":9.0,"video_price":false},{"name":"Pasalic","tier":"LOWCOST_TITOLARI","score":6.2,"squadra":"Atalanta","prezzo":4,"fvm":11.0,"video_price":true},{"name":"Pisilli","tier":"LOWCOST_SORPRESE","score":6.2,"squadra":"Roma","fvm":9.5,"prezzo":3,"video_price":true},{"name":"Locatelli","tier":"LOWCOST_TITOLARI","score":6.1,"squadra":"Juventus","fvm":16.5,"prezzo":1,"video_price":true},{"name":"Fazzini","tier":"LOWCOST_SORPRESE","score":6.0,"squadra":"Cagliari","fvm":11.5,"prezzo":7,"video_price":true},{"name":"Fagioli","tier":"LOWCOST_TITOLARI","score":5.9,"squadra":"Fiorentina","fvm":10.0,"prezzo":1,"video_price":true},{"name":"Lobotka","tier":"LOWCOST_TITOLARI","score":5.9,"squadra":"Napoli","fvm":11.5,"prezzo":6,"video_price":false},{"name":"Romano","tier":"LOWCOST_TITOLARI","score":5.9,"squadra":"Cagliari","fvm":10.5,"prezzo":3,"video_price":true},{"name":"Frendrup","tier":"LOWCOST_TITOLARI","score":5.5,"squadra":"Genoa","fvm":9.5,"prezzo":5,"video_price":false},{"name":"Basic","tier":"LOWCOST_TITOLARI","score":5.4,"squadra":"Venezia","fvm":9.5,"prezzo":2,"video_price":true},{"name":"Ndour","tier":"LOWCOST_SORPRESE","score":5.3,"squadra":"Fiorentina","fvm":11.0,"prezzo":1,"video_price":true},{"name":"Oulai","tier":"LOWCOST_SORPRESE","score":5.3,"squadra":"Fiorentina","fvm":9.0,"prezzo":1,"video_price":true},{"name":"Busio","tier":"LOWCOST_TITOLARI","score":5.3,"squadra":"Venezia","fvm":7.0,"prezzo":4,"video_price":true},{"name":"Kike Perez","tier":"LOWCOST_TITOLARI","score":5.3,"squadra":"Venezia","fvm":7.5,"prezzo":4,"video_price":false},{"name":"Keita","tier":"LOWCOST_TITOLARI","score":5.1,"squadra":"Parma","fvm":7.5,"prezzo":4,"video_price":false},{"name":"Liberali","tier":"LOWCOST_SORPRESE","score":5.0,"squadra":"Como","fvm":10.5,"prezzo":6,"video_price":true},{"name":"Karlstrom","tier":"LOWCOST_TITOLARI","score":5.0,"squadra":"Udinese","fvm":10.0,"prezzo":4,"video_price":false},{"name":"Adzic","tier":"LOWCOST_SORPRESE","score":5.0,"squadra":"Sassuolo","fvm":8.0,"prezzo":3,"video_price":true},{"name":"Amondarain","tier":"LOWCOST_SORPRESE","score":5.0,"squadra":"Bologna","fvm":5.0,"prezzo":3,"video_price":false},{"name":"Schmid","tier":"LOWCOST_TITOLARI","score":4.6,"squadra":"Frosinone","fvm":12.5,"prezzo":3,"video_price":true},{"name":"Calò","tier":"LOWCOST_SORPRESE","score":4.6,"squadra":"Frosinone","fvm":13.5,"prezzo":14,"video_price":true},{"name":"Unai Gomez","tier":"LOWCOST_SORPRESE","score":4.6,"squadra":"Udinese","fvm":8.0,"prezzo":1,"video_price":true},{"name":"Cacciamani","tier":"LOWCOST_SORPRESE","score":4.6,"squadra":"Torino","fvm":12.0,"prezzo":5,"video_price":true},{"name":"Meichtry","tier":"LOWCOST_SORPRESE","score":4.6,"squadra":"Genoa","fvm":5.5,"prezzo":4,"video_price":false},{"name":"Douglas Luiz","tier":"LOWCOST_SORPRESE","score":4.5,"squadra":"Juventus","fvm":7.5,"prezzo":1,"video_price":true},{"name":"Traorè","tier":"LOWCOST_SORPRESE","score":4.4,"squadra":"Genoa","fvm":5.5,"prezzo":2,"video_price":false}],"attaccanti":[{"name":"Malen","tier":"TOP","score":10,"squadra":"Roma","fvm":225.0,"prezzo":180,"video_price":true,"pmaPct":42.0},{"name":"Lautaro Martinez","tier":"TOP","score":9.5,"squadra":"Inter","fvm":180.5,"prezzo":150,"video_price":true,"pmaPct":35.4},{"name":"Thuram","tier":"TOP","score":9.3,"squadra":"Inter","fvm":124.5,"prezzo":110,"video_price":true,"pmaPct":26.0},{"name":"Woltemade","tier":"TOP","score":8.6,"squadra":"Juventus","prezzo":55,"fvm":80.0,"video_price":true,"pmaPct":14.0},{"name":"Kolo Muani","tier":"TOP","score":8.5,"squadra":"Juventus","fvm":82.5,"prezzo":115,"video_price":true,"pmaPct":18.2},{"name":"Scamacca","tier":"SEMITOP","score":8.3,"squadra":"Atalanta","fvm":55.0,"prezzo":55,"video_price":true,"pmaPct":14.8},{"name":"Soulè","tier":"SEMITOP","score":8.3,"squadra":"Roma","prezzo":16,"fvm":24.0,"video_price":true},{"name":"Hojlund","tier":"TOP","score":8.0,"squadra":"Napoli","fvm":130.0,"prezzo":100,"video_price":true,"pmaPct":26.8},{"name":"Varela G.","tier":"SEMITOP","score":8.0,"squadra":"Monza","prezzo":12,"fvm":20.0,"video_price":true},{"name":"Dybala","tier":"SEMITOP","score":7.7,"squadra":"Roma","fvm":50.0,"prezzo":58,"video_price":true,"pmaPct":16.4},{"name":"Douvikas","tier":"TOP","score":7.6,"squadra":"Como","fvm":92.5,"prezzo":70,"video_price":true,"pmaPct":17.5},{"name":"Goncalo Ramos","tier":"TOP","score":7.5,"squadra":"Milan","fvm":118.5,"prezzo":130,"video_price":true,"pmaPct":30.2},{"name":"Yildiz","tier":"TOP","score":7.5,"squadra":"Juventus","fvm":50.0,"prezzo":30,"video_price":true,"pmaPct":8.0},{"name":"Berardi","tier":"SEMITOP","score":7.5,"squadra":"Sassuolo","fvm":53.0,"prezzo":40,"video_price":true},{"name":"Kean","tier":"SEMITOP","score":7.4,"squadra":"Como","fvm":91.5,"prezzo":52,"video_price":true,"pmaPct":20.0},{"name":"Davis","tier":"SEMITOP","score":7.4,"squadra":"Udinese","fvm":54.0,"prezzo":57,"video_price":true,"pmaPct":14.4},{"name":"Boga","tier":"LOWCOST_TITOLARI","score":7.2,"squadra":"Juventus","fvm":13.5,"prezzo":13,"video_price":true},{"name":"Pio Esposito","tier":"LOWCOST_TITOLARI","score":7.1,"squadra":"Inter","fvm":52.5,"prezzo":62,"video_price":true},{"name":"Dovbyk","tier":"SEMITOP","score":7.1,"squadra":"Bologna","fvm":25.5,"prezzo":20,"video_price":true},{"name":"Raspadori","tier":"LOWCOST_SORPRESE","score":7.1,"squadra":"Atalanta","fvm":36.5,"prezzo":34,"video_price":true},{"name":"Beto","tier":"SEMITOP","score":7.0,"squadra":"Fiorentina","prezzo":42,"fvm":25.0,"video_price":true},{"name":"Laurientè","tier":"LOWCOST_TITOLARI","score":6.7,"squadra":"Sassuolo","fvm":41.5,"prezzo":25,"video_price":true},{"name":"Esposito Se.","tier":"LOWCOST_TITOLARI","score":6.7,"squadra":"Sassuolo","prezzo":10,"fvm":20.0,"video_price":true},{"name":"Krstovic","tier":"LOWCOST_TITOLARI","score":6.5,"squadra":"Atalanta","fvm":49.0,"prezzo":50,"video_price":true,"pmaPct":10.0},{"name":"Simeone","tier":"SEMITOP","score":6.5,"squadra":"Torino","fvm":40.0,"prezzo":60,"video_price":true,"pmaPct":13.6},{"name":"Kvernadze","tier":"LOWCOST_SORPRESE","score":6.5,"squadra":"Frosinone","fvm":12.0,"prezzo":6,"video_price":true},{"name":"De Ketelaere","tier":"LOWCOST_SORPRESE","score":6.4,"squadra":"Atalanta","fvm":47.5,"prezzo":32,"video_price":true},{"name":"Castro","tier":"LOWCOST_TITOLARI","score":6.4,"squadra":"Roma","fvm":35.0,"prezzo":19,"video_price":true},{"name":"Bobcek","tier":"LOWCOST_SORPRESE","score":6.4,"squadra":"Frosinone","prezzo":17,"fvm":15.5,"video_price":false},{"name":"Alisson Santos","tier":"LOWCOST_SORPRESE","score":6.3,"squadra":"Napoli","fvm":30.5,"prezzo":30,"video_price":true},{"name":"Osmajic","tier":"LOWCOST_SORPRESE","score":6.3,"squadra":"Genoa","prezzo":15,"fvm":14.0,"video_price":false},{"name":"Elphege","tier":"LOWCOST_SORPRESE","score":6.3,"squadra":"Parma","fvm":5.5,"prezzo":7,"video_price":false},{"name":"Gnonto","tier":"LOWCOST_SORPRESE","score":6.2,"squadra":"Fiorentina","prezzo":14,"fvm":12.5,"video_price":false},{"name":"Pinamonti","tier":"LOWCOST_TITOLARI","score":6.1,"squadra":"Lazio","fvm":26.5,"prezzo":35,"video_price":true},{"name":"Bonny","tier":"LOWCOST_SORPRESE","score":6.1,"squadra":"Inter","fvm":7.5,"prezzo":9,"video_price":true},{"name":"Che Adams","tier":"LOWCOST_TITOLARI","score":5.9,"squadra":"Torino","fvm":16.5,"prezzo":5,"video_price":true},{"name":"Bowie","tier":"LOWCOST_SORPRESE","score":5.8,"squadra":"Sassuolo","fvm":16.0,"prezzo":15,"video_price":true},{"name":"Zapata","tier":"LOWCOST_SORPRESE","score":5.8,"squadra":"Torino","fvm":6.0,"prezzo":11,"video_price":false},{"name":"Colombo","tier":"LOWCOST_TITOLARI","score":5.7,"squadra":"Genoa","fvm":26.0,"prezzo":28,"video_price":true},{"name":"El Bilal Touré","tier":"LOWCOST_TITOLARI","score":5.6,"squadra":"Parma","fvm":18.5,"prezzo":7,"video_price":true},{"name":"Mendy","tier":"LOWCOST_SORPRESE","score":5.6,"squadra":"Cagliari","fvm":6.0,"prezzo":6,"video_price":false},{"name":"Diao","tier":"LOWCOST_SORPRESE","score":5.5,"squadra":"Como","fvm":25.0,"prezzo":37,"video_price":true},{"name":"Piccoli","tier":"LOWCOST_SORPRESE","score":5.5,"squadra":"Bologna","fvm":14.5,"prezzo":15,"video_price":true},{"name":"Vitinha","tier":"LOWCOST_TITOLARI","score":5.4,"squadra":"Genoa","fvm":6.5,"prezzo":2,"video_price":true},{"name":"Akor Adams","tier":"LOWCOST_SORPRESE","score":5.3,"squadra":"Venezia","fvm":17.5,"prezzo":24,"video_price":true},{"name":"Yeboah","tier":"LOWCOST_SORPRESE","score":5.3,"squadra":"Venezia","fvm":13.5,"prezzo":16,"video_price":true},{"name":"Maldini","tier":"LOWCOST_TITOLARI","score":5.3,"squadra":"Cagliari","fvm":10.5,"prezzo":3,"video_price":true},{"name":"Pellegrino","tier":"LOWCOST_TITOLARI","score":5.0,"squadra":"Fiorentina","fvm":20.0,"prezzo":25,"video_price":true},{"name":"David Romero","tier":"LOWCOST_SORPRESE","score":5.0,"squadra":"Parma","fvm":18.5,"prezzo":8,"video_price":true},{"name":"Neres","tier":"LOWCOST_SORPRESE","score":5.0,"squadra":"Napoli","fvm":10.0,"prezzo":6,"video_price":true},{"name":"Mota","tier":"LOWCOST_SORPRESE","score":5.0,"squadra":"Monza","fvm":4.0,"prezzo":9,"video_price":false},{"name":"Cutrone","tier":"LOWCOST_TITOLARI","score":4.9,"squadra":"Monza","fvm":11.5,"prezzo":11,"video_price":false},{"name":"Raimondo","tier":"LOWCOST_TITOLARI","score":4.7,"squadra":"Frosinone","fvm":13.5,"prezzo":8,"video_price":false},{"name":"Kevin Carlos","tier":"LOWCOST_TITOLARI","score":4.6,"squadra":"Cagliari","fvm":18.0,"prezzo":14,"video_price":false},{"name":"Ghedjemis","tier":"LOWCOST_TITOLARI","score":4.6,"squadra":"Frosinone","fvm":11.5,"prezzo":14,"video_price":true},{"name":"Geubbels","tier":"LOWCOST_TITOLARI","score":4.6,"squadra":"Lecce","fvm":11.5,"prezzo":4,"video_price":true}],"portieri":[{"name":"Vicario","tier":"TOP","score":8.6,"squadra":"Juventus","fvm":35.0,"prezzo":45,"video_price":true},{"name":"Carnesecchi","tier":"TOP","score":8.4,"squadra":"Atalanta","fvm":27.5,"prezzo":36,"video_price":true},{"name":"Svilar","tier":"TOP","score":8.2,"squadra":"Roma","fvm":42.5,"prezzo":55,"video_price":true},{"name":"Milinkovic-Savic V.","tier":"TOP","score":8.2,"squadra":"Napoli","fvm":2.5,"prezzo":11,"video_price":true},{"name":"Butez","tier":"TOP","score":8.1,"squadra":"Como","fvm":25.0,"prezzo":43,"video_price":true},{"name":"Maignan","tier":"TOP","score":7.9,"squadra":"Milan","fvm":26.0,"prezzo":47,"video_price":true},{"name":"Meret","tier":"TOP","score":7.9,"squadra":"Napoli","fvm":24.0,"prezzo":42,"video_price":true},{"name":"Mandas","tier":"TOP","score":7.9,"squadra":"Lazio","fvm":18.0,"prezzo":25,"video_price":true},{"name":"Skorupski","tier":"TOP","score":7.6,"squadra":"Bologna","fvm":16.0,"prezzo":16,"video_price":true},{"name":"Martinez Jo.","tier":"TOP","score":7.5,"squadra":"Inter","fvm":34.0,"prezzo":44,"video_price":true},{"name":"Thiam","tier":"TOP","score":7.5,"squadra":"Monza","fvm":2.5,"prezzo":9,"video_price":false},{"name":"Falcone","tier":"TOP","score":7.3,"squadra":"Lecce","fvm":13.0,"prezzo":16,"video_price":false},{"name":"De Gea","tier":"TOP","score":7.2,"squadra":"Fiorentina","fvm":15.0,"prezzo":21,"video_price":true},{"name":"Stankovic F.","tier":"TOP","score":7.2,"squadra":"Venezia","fvm":5.5,"prezzo":3,"video_price":true},{"name":"Desplanches","tier":"TOP","score":7.1,"squadra":"Frosinone","fvm":0.5,"prezzo":7,"video_price":false},{"name":"Palmisani","tier":"TOP","score":7.1,"squadra":"Frosinone","fvm":6.0,"prezzo":4,"video_price":true},{"name":"Provedel","tier":"TOP","score":7.0,"squadra":"Inter","fvm":2.5,"prezzo":14,"video_price":true},{"name":"Daffara","tier":"LOWCOST","score":6.9,"squadra":"Parma","fvm":3.5,"prezzo":3,"video_price":false},{"name":"Okoye","tier":"LOWCOST","score":6.8,"squadra":"Udinese","fvm":14.0,"prezzo":11,"video_price":true},{"name":"Caprile","tier":"LOWCOST","score":6.7,"squadra":"Cagliari","fvm":12.5,"prezzo":10,"video_price":true},{"name":"Perri","tier":"LOWCOST","score":6.4,"squadra":"Torino","prezzo":7,"fvm":13.0,"video_price":true},{"name":"Bijlow","tier":"LOWCOST","score":6.1,"squadra":"Genoa","fvm":7.5,"prezzo":9,"video_price":true},{"name":"Muric","tier":"LOWCOST","score":6.0,"squadra":"Sassuolo","fvm":7.5,"prezzo":6,"video_price":true},{"name":"Turati","tier":"LOWCOST","score":5.8,"squadra":"Sassuolo","fvm":0.5,"prezzo":2,"video_price":false},{"name":"Terracciano","tier":"LOWCOST","score":5.7,"squadra":"Milan","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Motta","tier":"LOWCOST","score":5.4,"squadra":"Lazio","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Corvi","tier":"LOWCOST","score":5.2,"squadra":"Parma","fvm":5.0,"prezzo":5,"video_price":true},{"name":"Montipò","tier":"LOWCOST","score":5.2,"squadra":"Venezia","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Grabara","tier":"LOWCOST","score":4.0,"squadra":"Juventus","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Christensen O.","tier":"LOWCOST","score":3.5,"squadra":"Fiorentina","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Contini","tier":"LOWCOST","score":3.5,"squadra":"Napoli","fvm":0.5,"prezzo":1,"video_price":false},{"name":"De Marzi","tier":"LOWCOST","score":3.5,"squadra":"Roma","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Di Gennaro","tier":"LOWCOST","score":3.5,"squadra":"Inter","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Gollini","tier":"LOWCOST","score":3.5,"squadra":"Roma","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Grandi","tier":"LOWCOST","score":3.5,"squadra":"Venezia","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Happonen","tier":"LOWCOST","score":3.5,"squadra":"Bologna","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Lezzerini","tier":"LOWCOST","score":3.5,"squadra":"Fiorentina","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Lolic","tier":"LOWCOST","score":3.5,"squadra":"Frosinone","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Mascardi","tier":"LOWCOST","score":3.5,"squadra":"Torino","fvm":2.5,"prezzo":1,"video_price":false},{"name":"Padelli","tier":"LOWCOST","score":3.5,"squadra":"Udinese","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Penev","tier":"LOWCOST","score":3.5,"squadra":"Lecce","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Pessina Mas.","tier":"LOWCOST","score":3.5,"squadra":"Bologna","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Piana","tier":"LOWCOST","score":3.5,"squadra":"Udinese","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Pinsoglio","tier":"LOWCOST","score":3.5,"squadra":"Juventus","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Pisseri","tier":"LOWCOST","score":3.5,"squadra":"Frosinone","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Pozzi","tier":"LOWCOST","score":3.5,"squadra":"Venezia","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Radunovic","tier":"LOWCOST","score":3.5,"squadra":"Cagliari","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Renzetti","tier":"LOWCOST","score":3.5,"squadra":"Lazio","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Russo A.","tier":"LOWCOST","score":3.5,"squadra":"Sassuolo","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Satalino","tier":"LOWCOST","score":3.5,"squadra":"Sassuolo","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Sherri","tier":"LOWCOST","score":3.5,"squadra":"Cagliari","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Siviero","tier":"LOWCOST","score":3.5,"squadra":"Torino","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Sommariva","tier":"LOWCOST","score":3.5,"squadra":"Genoa","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Sportiello","tier":"LOWCOST","score":3.5,"squadra":"Atalanta","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Stolz","tier":"LOWCOST","score":3.5,"squadra":"Genoa","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Strajnar","tier":"LOWCOST","score":3.5,"squadra":"Monza","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Tornqvist","tier":"LOWCOST","score":3.5,"squadra":"Monza","fvm":5.0,"prezzo":2,"video_price":true},{"name":"Torriani","tier":"LOWCOST","score":3.5,"squadra":"Milan","fvm":0.5,"prezzo":1,"video_price":false},{"name":"Vigorito","tier":"LOWCOST","score":3.5,"squadra":"Como","fvm":0.5,"prezzo":1,"video_price":false}]}
+;
+
+const STRATEGY_ROWS = [
+  {role:'portieri', label:'POR - TOP', tiers:['TOP'], target:1},
+  {role:'difensori', label:'DIF - TOP', tiers:['TOP','SEMITOP'], target:4},
+  {role:'centrocampisti', label:'CEN - TOP', tiers:['TOP','SEMITOP'], target:4},
+  {role:'attaccanti', label:'ATT - TOP', tiers:['TOP','SEMITOP'], target:2},
+];
+
+const MANAGER_IDS = ['opp1','opp2','opp3','opp4','opp5','opp6','opp7'];
+
+let state = {
+  budget: 500,
+  opponents: ['Avversario 1','Avversario 2','Avversario 3','Avversario 4','Avversario 5','Avversario 6','Avversario 7'],
+  players: {}, // key -> {owner: null|'me'|'opp1'..'opp7', price:number|null}
+  hideTaken: true,
+};
+let ui = { role: 'portieri', search: '', expanded: null, roseOpen: null };
+
+function key(role, name){ return role + '|' + name; }
+function getP(role, name){
+  const k = key(role,name);
+  if(!state.players[k]) state.players[k] = {owner:null, price:null};
+  return state.players[k];
+}
+function managerName(id){
+  if(id==='me') return 'Io';
+  const idx = MANAGER_IDS.indexOf(id);
+  return idx>=0 ? state.opponents[idx] : id;
+}
+
+let saveTimer = null;
+async function save(){
+  document.getElementById('saveStatus').textContent = 'salvataggio...';
+  try{
+    await window.storage.set('fantacalcio-2026-state-v3', JSON.stringify(state), false);
+    document.getElementById('saveStatus').textContent = 'salvato';
+  }catch(e){
+    document.getElementById('saveStatus').textContent = 'errore salvataggio';
+    console.error(e);
+  }
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(save, 400);
+}
+async function load(){
+  try{
+    const res = await window.storage.get('fantacalcio-2026-state-v3', false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state = Object.assign(state, parsed);
+      if(!state.opponents || state.opponents.length!==7){
+        state.opponents = ['Avversario 1','Avversario 2','Avversario 3','Avversario 4','Avversario 5','Avversario 6','Avversario 7'];
+      }
+    }
+  }catch(e){ /* nessuno stato salvato ancora */ }
+}
+
+function slotsFilledBy(managerId, role){
+  let n = 0;
+  for(const k in state.players){
+    if(k.startsWith(role+'|') && state.players[k].owner===managerId) n++;
+  }
+  return n;
+}
+function slotsFilled(role){ return slotsFilledBy('me', role); }
+function totalSpesoBy(managerId){
+  let s = 0;
+  for(const k in state.players){ if(state.players[k].owner===managerId) s += (state.players[k].price||0); }
+  return s;
+}
+function totalSpeso(){ return totalSpesoBy('me'); }
+function stratProgress(role, tiers){
+  let n = 0;
+  for(const p of PLAYER_DATA[role]){
+    if(tiers.includes(p.tier)){
+      const st = getP(role,p.name);
+      if(st.owner==='me') n++;
+    }
+  }
+  return n;
+}
+const ALL_MANAGERS = ['me', ...MANAGER_IDS];
+const ROLE_SEQUENCE = ['portieri','difensori','centrocampisti','attaccanti'];
+const RESERVE_STRENGTH = 0.72; // quota della riserva strategica che il MAX protegge davvero; il resto resta flessibile
+
+function roleIndex(role){ return ROLE_SEQUENCE.indexOf(role); }
+function totalSlotsMissingBy(managerId){
+  return ROLE_SEQUENCE.reduce((sum, role)=>sum + Math.max(0, ROLES[role].slots - slotsFilledBy(managerId, role)), 0);
+}
+function roleCompleteForAll(role){
+  return ALL_MANAGERS.every(mid => slotsFilledBy(mid, role) >= ROLES[role].slots);
+}
+function currentAuctionRole(){
+  return ROLE_SEQUENCE.find(role => !roleCompleteForAll(role)) || ROLE_SEQUENCE[ROLE_SEQUENCE.length-1];
+}
+function managerMaxSpendable(managerId){
+  const remaining = Math.max(0, state.budget - totalSpesoBy(managerId));
+  const slotsAfter = Math.max(0, totalSlotsMissingBy(managerId) - 1);
+  return Math.max(0, remaining - slotsAfter);
+}
+
+
+// GERARCHIA PER SLOT
+// Lo slot descrive il livello che il giocatore dovrebbe occupare nella rosa finale.
+// Il MAX viene ridotto se, in base ai giocatori già acquistati, il candidato scivolerebbe
+// in uno slot più basso rispetto al suo livello naturale.
+const SLOT_SCORE_THRESHOLDS = {
+  difensori:[8.5,7.8,7.2,6.7,6.2,5.8,5.3,-Infinity],
+  centrocampisti:[9.2,8.5,7.8,7.3,6.8,6.3,5.8,-Infinity],
+  attaccanti:[9.0,8.2,7.4,6.7,6.1,-Infinity],
+  portieri:[8.0,6.5,-Infinity]
+};
+const SLOT_PREFIX = {portieri:'P',difensori:'D',centrocampisti:'C',attaccanti:'A'};
+
+function naturalSlot(role, meta){
+  const th = SLOT_SCORE_THRESHOLDS[role] || [-Infinity];
+  const score = Number(meta.score)||0;
+  for(let i=0;i<th.length;i++) if(score>=th[i]) return i+1;
+  return th.length;
+}
+
+function projectedSlot(role, meta){
+  const owned = PLAYER_DATA[role]
+    .filter(p=>getP(role,p.name).owner==='me' && p.name!==meta.name)
+    .map(p=>Number(p.score)||0);
+  const actualRank = 1 + owned.filter(s=>s > (Number(meta.score)||0)).length;
+  return Math.min(ROLES[role].slots, Math.max(naturalSlot(role,meta), actualRank));
+}
+
+function slotLabel(role, meta){
+  return `${SLOT_PREFIX[role]||''}${projectedSlot(role,meta)}`;
+}
+
+function slotMaxFactor(role, meta){
+  const natural = naturalSlot(role,meta);
+  const projected = projectedSlot(role,meta);
+  const demotion = Math.max(0, projected-natural);
+  // Ogni slot perso riduce il tetto del 5%, fino a un massimo del 20%.
+  return Math.max(0.80, 1 - 0.05*demotion);
+}
+
+
+const RIGORISTI = {"Kessiè":"Atalanta — prima scelta in ballottaggio con Scamacca","Scamacca":"Atalanta — prima scelta in ballottaggio con Kessiè","Orsolini":"Bologna — primo rigorista","Fazzini":"Cagliari — candidato principale insieme a Nzola","Da Cunha":"Como — primo rigorista","Mastantuono":"Fiorentina — candidato principale","Pellegrino":"Fiorentina — candidato principale","Schmid":"Frosinone — primo candidato","Colombo":"Genoa — primo candidato","Calhanoglu":"Inter — primo rigorista","Kolo Muani":"Juventus — gerarchia aperta per il primo posto","Locatelli":"Juventus — gerarchia aperta per il primo posto","Woltemade":"Juventus — gerarchia aperta per il primo posto","Zaccagni":"Lazio — gerarchia aperta per il primo posto","Taylor":"Lazio — gerarchia aperta per il primo posto","Pinamonti":"Lazio — gerarchia aperta per il primo posto","Geubbels":"Lecce — primo candidato","Goncalo Ramos":"Milan — prima scelta in ballottaggio con Pulisic","Pulisic":"Milan — prima scelta in ballottaggio con Goncalo Ramos","De Bruyne":"Napoli — leggermente avanti nella gerarchia","Hojlund":"Napoli — prima scelta in ballottaggio con De Bruyne","El Bilal Touré":"Parma — prima scelta in ballottaggio con Elphege","Elphege":"Parma — prima scelta in ballottaggio con El Bilal Touré","Dybala":"Roma — prima scelta in ballottaggio con Malen","Malen":"Roma — prima scelta in ballottaggio con Dybala","Berardi":"Sassuolo — primo rigorista","Vlasic":"Torino — primo rigorista","Davis":"Udinese — primo rigorista","Busio":"Venezia — primo rigorista"};
+
+function rigoristaTagHtml(name){
+  const note=RIGORISTI[name];
+  if(!note) return '';
+  return `<span class="intel-tag rig" title="${note.replace(/"/g,'&quot;')}">RIG</span>`;
+}
+
+/* ---------- PRICING DINAMICO ----------
+   Per ogni bucket (ruolo, fascia) calcola il rapporto mediano prezzo_reale/FVM
+   tra i giocatori gia' assegnati (a chiunque). Applica il fattore, con smorzamento
+   finche' il campione e' piccolo, al prezzo consigliato base dei giocatori liberi. */
+function median(arr){
+  if(arr.length===0) return null;
+  const s = arr.slice().sort((a,b)=>a-b);
+  const mid = Math.floor(s.length/2);
+  return s.length%2 ? s[mid] : (s[mid-1]+s[mid])/2;
+}
+function bucketKeyFor(role, tier){ return role+'|'+(tier||'ALL'); }
+function computeMarketFactors(){
+  const groups = {}; // bucketKey -> array of ratios
+  for(const role in PLAYER_DATA){
+    for(const meta of PLAYER_DATA[role]){
+      const st = getP(role, meta.name);
+      if(st.owner && st.price!=null && meta.fvm>0){
+        const bk = bucketKeyFor(role, meta.tier);
+        (groups[bk] = groups[bk]||[]).push(st.price/meta.fvm);
+      }
+    }
+  }
+  const factors = {};
+  for(const bk in groups){
+    const ratios = groups[bk];
+    const n = ratios.length;
+    const raw = median(ratios);
+    const shrink = Math.min(1, n/6); // serve almeno ~6 transazioni per fidarsi al 100%
+    factors[bk] = {factor: 1 + (raw-1)*shrink, n};
+  }
+  return factors;
+}
+function dynamicPrice(role, meta, factors){
+  const bk = bucketKeyFor(role, meta.tier);
+  const f = factors[bk];
+  if(!f) return meta.prezzo;
+  const adj = Math.max(0.4, Math.min(2.5, f.factor));
+  return Math.max(1, Math.round(meta.prezzo*adj));
+}
+
+/* ---------- RISERVA DINAMICA + REPLACEMENT REALISTICO ----------
+   Le riserve dei reparti incompleti vengono ricalcolate dopo ogni acquisto e la loro somma
+   coincide sempre con il budget residuo. Ogni reparto mantiene almeno 1 credito per slot;
+   il resto viene distribuito in proporzione al fabbisogno strategico stimato. */
+function quantile(arr, q){
+  if(!arr.length) return null;
+  const s = arr.slice().sort((a,b)=>a-b);
+  const pos = (s.length-1)*Math.max(0,Math.min(1,q));
+  const lo = Math.floor(pos), hi = Math.ceil(pos);
+  if(lo===hi) return s[lo];
+  return s[lo] + (s[hi]-s[lo])*(pos-lo);
+}
+
+function strategyRowFor(role){ return STRATEGY_ROWS.find(r=>r.role===role) || null; }
+function premiumTiersFor(role){
+  const row = strategyRowFor(role);
+  return row ? row.tiers : (role==='portieri' ? ['TOP'] : ['TOP','SEMITOP']);
+}
+
+function plannedRoleReserve(role, factors, afterBuying=null){
+  const boughtHere = afterBuying && afterBuying.role===role ? 1 : 0;
+  const missing = Math.max(0, ROLES[role].slots - slotsFilled(role) - boughtHere);
+  if(missing===0) return 0;
+
+  const row = strategyRowFor(role);
+  const premiumTiers = premiumTiersFor(role);
+  let premiumDone = stratProgress(role, premiumTiers);
+  if(afterBuying && afterBuying.role===role && premiumTiers.includes(afterBuying.meta.tier)) premiumDone++;
+  const premiumNeed = row ? Math.min(missing, Math.max(0, row.target - premiumDone)) : 0;
+
+  const free = PLAYER_DATA[role].filter(p =>
+    getP(role,p.name).owner===null && (!afterBuying || afterBuying.meta.name!==p.name)
+  );
+  const allPrices = free.map(p=>dynamicPrice(role,p,factors)).filter(Number.isFinite);
+  const premiumPrices = free.filter(p=>premiumTiers.includes(p.tier)).map(p=>dynamicPrice(role,p,factors));
+  const depthPrices = free.filter(p=>!premiumTiers.includes(p.tier)).map(p=>dynamicPrice(role,p,factors));
+
+  // Non uso il giocatore più economico: una quantile bassa evita di fondare il piano su occasioni che potrebbero sparire.
+  const premiumRef = Math.max(1, Math.round(quantile(premiumPrices,0.35) ?? quantile(allPrices,0.55) ?? 1));
+  const depthRef = Math.max(1, Math.round(quantile(depthPrices,0.25) ?? quantile(allPrices,0.25) ?? 1));
+  const depthNeed = Math.max(0, missing-premiumNeed);
+  return Math.max(missing, premiumNeed*premiumRef + depthNeed*depthRef);
+}
+
+function normalizedRoleReserves(factors){
+  const remaining = Math.max(0, state.budget - totalSpeso());
+
+  const info = ROLE_SEQUENCE.map((role,idx)=>{
+    const missing = Math.max(0, ROLES[role].slots - slotsFilled(role));
+    const floor = missing; // minimo assoluto: 1 credito per ogni slot ancora vuoto
+    const desired = missing>0 ? Math.max(floor, plannedRoleReserve(role,factors)) : 0;
+    return {role,idx,missing,floor,desired,reserve:0,raw:0};
+  }).filter(x=>x.missing>0);
+
+  if(!info.length) return Object.fromEntries(ROLE_SEQUENCE.map(r=>[r,0]));
+
+  const totalFloor = info.reduce((s,x)=>s+x.floor,0);
+
+  // Caso patologico: budget residuo insufficiente perfino per 1 credito a slot.
+  // Distribuiamo comunque tutto il residuo, privilegiando i reparti con più slot mancanti.
+  if(remaining <= totalFloor){
+    const totalMissing = Math.max(1, info.reduce((s,x)=>s+x.missing,0));
+    let assigned = 0;
+    info.forEach((x,i)=>{
+      const raw = remaining * x.missing / totalMissing;
+      x.raw = raw;
+      x.reserve = Math.floor(raw);
+      assigned += x.reserve;
+    });
+    let left = remaining-assigned;
+    info.sort((a,b)=>(b.raw-Math.floor(b.raw))-(a.raw-Math.floor(a.raw)) || a.idx-b.idx);
+    for(let i=0;i<left;i++) info[i%info.length].reserve++;
+  } else {
+    const extra = remaining-totalFloor;
+
+    // Il peso strategico deriva da quanto il reparto "vorrebbe" spendere oltre al minimo.
+    // Se tutti i desideri coincidono col minimo, uso gli slot mancanti come peso.
+    let weights = info.map(x=>Math.max(0,x.desired-x.floor));
+    let weightSum = weights.reduce((s,w)=>s+w,0);
+    if(weightSum<=0){
+      weights = info.map(x=>x.missing);
+      weightSum = weights.reduce((s,w)=>s+w,0);
+    }
+
+    let assignedExtra = 0;
+    info.forEach((x,i)=>{
+      const rawExtra = extra * weights[i] / Math.max(1,weightSum);
+      x.raw = rawExtra;
+      const add = Math.floor(rawExtra);
+      x.reserve = x.floor + add;
+      assignedExtra += add;
+    });
+
+    // Arrotondamento a somma esatta: assegna i crediti residui alle frazioni maggiori.
+    let left = extra-assignedExtra;
+    const order = info.slice().sort((a,b)=>
+      (b.raw-Math.floor(b.raw))-(a.raw-Math.floor(a.raw)) || a.idx-b.idx
+    );
+    for(let i=0;i<left;i++) order[i%order.length].reserve++;
+  }
+
+  const out = Object.fromEntries(ROLE_SEQUENCE.map(r=>[r,0]));
+  info.forEach(x=>out[x.role]=x.reserve);
+  return out;
+}
+
+function reserveAfterPurchase(role, meta, factors){
+  // Compatibilità con il resto del tool: restituisce la quota che va protetta
+  // FUORI dall'acquisto corrente, usando la nuova allocazione dinamica.
+  const reserves = normalizedRoleReserves(factors);
+  const remaining = Math.max(0, state.budget-totalSpeso());
+  const missingHere = Math.max(1, ROLES[role].slots-slotsFilled(role));
+  const roleReserve = reserves[role] || 0;
+
+  // Del budget assegnato al reparto, almeno 1 credito resta per ciascuno
+  // degli altri slot del reparto dopo questo acquisto.
+  const sameRoleFloorAfter = Math.max(0, missingHere-1);
+  const protectedOtherRoles = Math.max(0, remaining-roleReserve);
+  const effective = protectedOtherRoles + sameRoleFloorAfter;
+
+  return {
+    absoluteFloor: Math.max(0,totalSlotsMissingBy('me')-1),
+    desired: effective,
+    effective,
+    roleReserve,
+    reserves
+  };
+}
+
+function smartBudgetCap(role, meta, factors){
+  const remaining = Math.max(0, state.budget-totalSpeso());
+  const reserves = normalizedRoleReserves(factors);
+  const roleReserve = reserves[role] || 0;
+  const missingHere = Math.max(1, ROLES[role].slots-slotsFilled(role));
+
+  // Il singolo acquisto può usare al massimo la quota del reparto,
+  // lasciando 1 credito per ogni altro slot ancora da riempire nello stesso reparto.
+  const roleCap = Math.max(1, roleReserve-Math.max(0,missingHere-1));
+  const globalCap = managerMaxSpendable('me');
+
+  return {
+    cap: Math.max(1, Math.min(roleCap, globalCap || roleCap)),
+    reserve: {
+      roleReserve,
+      reserves,
+      effective: Math.max(0,remaining-roleCap),
+      absoluteFloor: Math.max(0,totalSlotsMissingBy('me')-1),
+      desired: Math.max(0,remaining-roleCap)
+    }
+  };
+}
+
+function currentRoleSlotBudget(role, factors){
+  const reserves = normalizedRoleReserves(factors);
+  const missing = Math.max(1, ROLES[role].slots-slotsFilled(role));
+  return Math.max(1, (reserves[role]||0)/missing);
+}
+
+function tierRank(role, tier){
+  if(role==='portieri') return tier==='TOP' ? 2 : 0;
+  return ({TOP:3,SEMITOP:2,LOWCOST_TITOLARI:1,LOWCOST_SORPRESE:0})[tier] ?? 0;
+}
+function replacementTierCompatible(role, candidateTier, altTier){
+  if(role==='portieri') return candidateTier===altTier;
+  const c=tierRank(role,candidateTier), a=tierRank(role,altTier);
+  if(c>=3) return a>=2;          // TOP -> TOP / SEMITOP
+  if(c===2) return a>=1;         // SEMITOP -> SEMITOP / lowcost titolare (o TOP se costa simile)
+  return a<=1;                   // lowcost -> altri lowcost
+}
+
+function replacementInfo(role, meta, factors){
+  const ideal = dynamicPrice(role,meta,factors);
+  const slotBudget = currentRoleSlotBudget(role,factors);
+  const priceCeiling = Math.max(ideal*1.25, slotBudget*1.10);
+  let alternatives = PLAYER_DATA[role].filter(p =>
+    p.name!==meta.name && getP(role,p.name).owner===null && p.score!=null &&
+    replacementTierCompatible(role,meta.tier,p.tier) && dynamicPrice(role,p,factors)<=priceCeiling
+  );
+  if(!alternatives.length){
+    alternatives = PLAYER_DATA[role].filter(p =>
+      p.name!==meta.name && getP(role,p.name).owner===null && p.score!=null && dynamicPrice(role,p,factors)<=ideal*1.30
+    );
+  }
+  alternatives.sort((a,b)=>(b.score||0)-(a.score||0) || dynamicPrice(role,a,factors)-dynamicPrice(role,b,factors));
+  const replacement = alternatives[0] || null;
+  const replacementIdeal = replacement ? dynamicPrice(role,replacement,factors) : null;
+  const gap = replacement ? Math.max(0,(meta.score||0)-(replacement.score||0)) : 0;
+  return {player:replacement, gap, ideal:replacementIdeal, slotBudget, priceCeiling};
+}
+
+function cliffInfo(role, meta, factors, replacement=null){
+  const rep = replacement || replacementInfo(role,meta,factors);
+  const gap = rep.gap || 0;
+  let level='none', label='';
+  if(!rep.player && (meta.score||0)>=6){ level='high'; label='ULTIMO LIVELLO'; }
+  else if(gap>=0.75){ level='high'; label='CLIFF ALTO'; }
+  else if(gap>=0.40){ level='mid'; label='CLIFF'; }
+  else if(gap>=0.25){ level='low'; label=''; }
+  return {gap,level,label};
+}
+
+/* ---------- PRESSIONE AVVERSARIA SPECIFICA ----------
+   Un rivale conta davvero solo se ha ancora slot nel ruolo e un tetto teorico compatibile
+   con il prezzo del giocatore. Non assumiamo preferenze personali che il tool non conosce. */
+function playerOpponentPressure(role, meta, factors){
+  const ideal = Math.max(1,dynamicPrice(role,meta,factors));
+  const rivals = MANAGER_IDS.map(id=>{
+    const missing = Math.max(0,ROLES[role].slots-slotsFilledBy(id,role));
+    const maxBid = managerMaxSpendable(id);
+    const affordability = maxBid/ideal;
+    const demand = missing/Math.max(1,ROLES[role].slots);
+    const weight = missing>0 ? Math.min(1,affordability)*(0.60+0.40*demand) : 0;
+    return {id,name:managerName(id),missing,maxBid,affordability,weight};
+  }).filter(x=>x.missing>0 && x.maxBid>=Math.max(1,ideal*0.80))
+    .sort((a,b)=>b.maxBid-a.maxBid);
+
+  const strong = rivals.filter(x=>x.maxBid>=ideal);
+  const pressureIndex = Math.max(0,Math.min(1,
+    (rivals.length/MANAGER_IDS.length)*0.65 +
+    (rivals.reduce((s,x)=>s+x.weight,0)/Math.max(1,MANAGER_IDS.length))*0.35
+  ));
+  return {
+    rivals,
+    competitors:rivals.length,
+    strongCompetitors:strong.length,
+    richestMax:rivals.length?rivals[0].maxBid:0,
+    pressureIndex,
+    maxBoost:0.08*pressureIndex
+  };
+}
+
+function playerAuctionValues(role, meta, factors){
+  const ideal = dynamicPrice(role, meta, factors);
+  const replacement = replacementInfo(role, meta, factors);
+  const cliff = cliffInfo(role,meta,factors,replacement);
+  const market = playerOpponentPressure(role,meta,factors);
+  const budget = smartBudgetCap(role,meta,factors);
+
+  const relativeGap = replacement.player ? replacement.gap/Math.max(1,meta.score||1) : 0.10;
+  const replacementBoost = Math.min(0.22, relativeGap*1.55);
+  const cliffBoost = cliff.level==='high' ? 0.05 : (cliff.level==='mid' ? 0.025 : 0);
+  const totalBoost = Math.min(0.30, replacementBoost + cliffBoost + market.maxBoost);
+
+  // PMA del video: riferimento di mercato, NON prezzo da inseguire.
+  // Se il mercato medio è sopra il nostro ideale, assorbiamo solo il 35% del gap
+  // e comunque non oltre +12% dell'ideale. Se è sotto, riduciamo il tetto con prudenza.
+  let pmaAdjustment = 0;
+  if(meta.pmaPct!=null){
+    const pmaCredits = meta.pmaPct*5; // PMA espresso in % su budget 500
+    const gap = pmaCredits-ideal;
+    if(gap>0) pmaAdjustment = Math.min(ideal*0.12, gap*0.35);
+    else pmaAdjustment = Math.max(-ideal*0.08, gap*0.20);
+  }
+
+  const strategicMax = Math.round(ideal*(1+totalBoost) + pmaAdjustment);
+  const slot = projectedSlot(role,meta);
+  const slotFactor = slotMaxFactor(role,meta);
+  const slotAdjustedMax = Math.max(1, Math.round(strategicMax*slotFactor));
+
+  return {
+    score:meta.score||0,
+    ideal,
+    max:Math.max(1,Math.min(slotAdjustedMax,budget.cap)),
+    slot,
+    slotFactor,
+    replacement:replacement.player,
+    replacementGap:replacement.gap,
+    replacementIdeal:replacement.ideal,
+    cliff,
+    competitors:market.competitors,
+    strongCompetitors:market.strongCompetitors,
+    richestRivalMax:market.richestMax,
+    rivals:market.rivals,
+    opponentPressure:market.pressureIndex,
+    budgetCap:budget.cap,
+    reserve:budget.reserve
+  };
+}
+
+/* ---------- VALUE ABOVE REPLACEMENT / "AFFARE" ----------
+   Un affare deve dare un vantaggio reale sull'alternativa. Per evitare che vincano sempre
+   i giocatori da pochi crediti, richiedo un gap minimo e misuro il guadagno per costo incrementale. */
+function computeAffareSet(role, factors){
+  const free = PLAYER_DATA[role].filter(m=>getP(role,m.name).owner===null && m.score);
+  if(free.length<4) return new Set();
+  const withVal = free.map(m=>{
+    const rep = replacementInfo(role,m,factors);
+    if(!rep.player || rep.gap<0.30) return null;
+    const ideal = dynamicPrice(role,m,factors);
+    const incrementalCost = Math.max(1, ideal-(rep.ideal||0));
+    return {name:m.name,val:rep.gap/incrementalCost,gap:rep.gap};
+  }).filter(Boolean).sort((a,b)=>b.val-a.val || b.gap-a.gap);
+  if(!withVal.length) return new Set();
+  const cut=Math.max(1,Math.round(withVal.length*0.15));
+  return new Set(withVal.slice(0,cut).map(x=>x.name));
+}
+
+/* ---------- COPPIE PORTIERI ----------
+   Per ogni TOP proponi: 1) i due migliori compagni della stessa squadra;
+   2-3) primo+secondo portiere delle due squadre con miglior incastro calendario.
+   I punteggi derivano dalla griglia fornita: verde = 89 o piu'. */
+const GK_PAIR_RANKINGS = {
+  'Atalanta': [['Sassuolo',91],['Parma',89],['Bologna',87],['Lazio',87]],
+  'Bologna': [['Inter',92],['Roma',91],['Venezia',89],['Como',88],['Juventus',88]],
+  'Como': [['Udinese',92],['Fiorentina',89],['Sassuolo',89],['Torino',89],['Bologna',88]],
+  'Fiorentina': [['Milan',91],['Como',89],['Juventus',88],['Cagliari',87],['Napoli',87]],
+  'Frosinone': [['Inter',88],['Juventus',88],['Lazio',88],['Milan',88],['Torino',88]],
+  'Inter': [['Bologna',92],['Cagliari',92],['Monza',89],['Frosinone',88],['Torino',88]],
+  'Juventus': [['Cagliari',91],['Torino',91],['Bologna',88],['Fiorentina',88],['Frosinone',88]],
+  'Lazio': [['Lecce',91],['Cagliari',88],['Frosinone',88],['Juventus',88],['Genoa',86]],
+  'Lecce': [['Napoli',92],['Lazio',91],['Milan',89],['Genoa',88],['Inter',86]],
+  'Milan': [['Fiorentina',91],['Cagliari',89],['Lecce',89],['Parma',89],['Sassuolo',89]],
+  'Monza': [['Inter',89],['Roma',89],['Atalanta',88],['Juventus',88],['Napoli',87]],
+  'Napoli': [['Lecce',92],['Torino',89],['Fiorentina',87],['Frosinone',87],['Genoa',87]],
+  'Roma': [['Bologna',91],['Monza',89],['Venezia',89],['Cagliari',87],['Genoa',87]],
+  'Venezia': [['Bologna',89],['Roma',89],['Fiorentina',87],['Inter',87],['Juventus',87]]
+};
+
+function teamGoalkeepers(team){
+  return PLAYER_DATA.portieri
+    .filter(p => p.squadra===team)
+    .slice()
+    .sort((a,b)=>(b.score||0)-(a.score||0) || (b.prezzo||0)-(a.prezzo||0));
+}
+
+function goalkeeperPairForSameTeam(top){
+  if(top.squadra==='Juventus'){
+    const wanted=['Grabara','Pinsoglio']
+      .map(n=>PLAYER_DATA.portieri.find(p=>p.name===n))
+      .filter(Boolean)
+      .filter(p=>p.name!==top.name && getP('portieri',p.name).owner===null);
+    if(wanted.length===2) return wanted;
+  }
+  const mates = teamGoalkeepers(top.squadra)
+    .filter(p => p.name!==top.name && getP('portieri',p.name).owner===null)
+    .slice(0,2);
+  return mates.length===2 ? mates : null;
+}
+
+function goalkeeperPairForPartnerTeam(team){
+  const depth = teamGoalkeepers(team).slice(0,2);
+  if(depth.length<2) return null;
+  return depth.every(p => getP('portieri',p.name).owner===null) ? depth : null;
+}
+
+function renderGoalkeeperCompletionSuggestions(body, factors, ownedKeeper){
+  // Dopo il primo acquisto non suggeriamo un altro singolo TOP: completiamo direttamente
+  // il terzetto, ordinando prima la coppia della stessa squadra e poi i migliori incastri.
+  const combinations = [];
+
+  const same = goalkeeperPairForSameTeam(ownedKeeper);
+  if(same){
+    combinations.push({
+      label:`Blocco ${ownedKeeper.squadra}`,
+      rating:100,
+      pair:same,
+      kind:'same'
+    });
+  }
+
+  const ranked = GK_PAIR_RANKINGS[ownedKeeper.squadra] || [];
+  for(const [team,rating] of ranked){
+    const pair = goalkeeperPairForPartnerTeam(team);
+    if(pair) combinations.push({label:`Incastro ${rating}`, team, rating, pair, kind:'partner'});
+    if(combinations.filter(x=>x.kind==='partner').length>=4) break;
+  }
+
+  if(!combinations.length){
+    body.innerHTML = '<div class="empty" style="padding:6px 0;">Nessuna coppia libera disponibile per completare i portieri.</div>';
+    return;
+  }
+
+  const pairRecommendedPrice = pair => pair.reduce((sum,p)=>sum + dynamicPrice('portieri',p,factors),0);
+  const card=document.createElement('div');
+  card.className='gk-suggest-card';
+  const paid=getP('portieri',ownedKeeper.name).price;
+  card.innerHTML=`
+    <div class="gk-suggest-head">
+      <span class="p-dot tier-${ownedKeeper.tier}-dot"></span>
+      <div class="suggest-namewrap">
+        <div class="suggest-name">${ownedKeeper.name}${favStar('portieri',ownedKeeper.name)} <span class="suggest-team">${ownedKeeper.squadra} · già preso</span></div>
+      </div>
+      <div class="suggest-price">${paid??'—'}<div class="p-price-sub">pagato</div></div>
+    </div>
+    <div class="gk-pairs">
+      ${combinations.map((x,i)=>`
+        <div class="gk-pair">
+          <div class="gk-pair-left">
+            <div class="gk-pair-label">${i===0?'Combinazione consigliata':(x.kind==='same'?'Stessa squadra':`${x.team} · incastro ${x.rating}`)}</div>
+            <div class="gk-pair-names">${x.pair[0].name}${favStar('portieri',x.pair[0].name)} + ${x.pair[1].name}${favStar('portieri',x.pair[1].name)}</div>
+          </div>
+          <div class="gk-pair-price">${pairRecommendedPrice(x.pair)}<div class="gk-pair-price-sub">coppia</div></div>
+        </div>`).join('')}
+    </div>`;
+  body.appendChild(card);
+}
+
+function renderGoalkeeperSuggestions(body, factors){
+  const myKeepers = PLAYER_DATA.portieri.filter(p => getP('portieri',p.name).owner==='me');
+  if(myKeepers.length===1){
+    renderGoalkeeperCompletionSuggestions(body, factors, myKeepers[0]);
+    return;
+  }
+
+  const topCandidates = PLAYER_DATA.portieri
+    .filter(p => p.tier==='TOP' && getP('portieri',p.name).owner===null)
+    .map(p => ({p, values:playerAuctionValues('portieri',p,factors)}))
+    .filter(c => c.values.ideal <= c.values.budgetCap)
+    .sort((a,b)=>(b.p.score||0)-(a.p.score||0))
+    .slice(0,1);
+
+  if(topCandidates.length===0){
+    body.innerHTML = '<div class="empty" style="padding:6px 0;">Nessun portiere TOP libero compatibile col budget.</div>';
+    return;
+  }
+
+  topCandidates.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'gk-suggest-card';
+
+    const same = goalkeeperPairForSameTeam(c.p);
+    const ranked = GK_PAIR_RANKINGS[c.p.squadra] || [];
+    const partnerPairs = [];
+    for(const [team,rating] of ranked){
+      const pair = goalkeeperPairForPartnerTeam(team);
+      if(pair){ partnerPairs.push({team,rating,pair}); }
+      if(partnerPairs.length===2) break;
+    }
+
+    const pairRecommendedPrice = pair => pair.reduce((sum, p) => sum + dynamicPrice('portieri', p, factors), 0);
+
+    const sameHtml = same
+      ? `<div class="gk-pair">
+          <div class="gk-pair-left">
+            <div class="gk-pair-label">Stessa squadra</div>
+            <div class="gk-pair-names">${same[0].name}${favStar('portieri',same[0].name)} + ${same[1].name}${favStar('portieri',same[1].name)}</div>
+          </div>
+          <div class="gk-pair-price">${pairRecommendedPrice(same)}<div class="gk-pair-price-sub">coppia</div></div>
+        </div>`
+      : `<div class="gk-pair">
+          <div class="gk-pair-left">
+            <div class="gk-pair-label">Stessa squadra</div>
+            <div class="gk-pair-names">coppia non disponibile</div>
+          </div>
+          <div class="gk-pair-price">—</div>
+        </div>`;
+
+    const partnerHtml = partnerPairs.map(x => `
+      <div class="gk-pair">
+        <div class="gk-pair-left">
+          <div class="gk-pair-label">${x.team}</div>
+          <div class="gk-pair-names">${x.pair[0].name}${favStar('portieri',x.pair[0].name)} + ${x.pair[1].name}${favStar('portieri',x.pair[1].name)}</div>
+        </div>
+        <div class="gk-pair-price">${pairRecommendedPrice(x.pair)}<div class="gk-pair-price-sub">coppia</div></div>
+      </div>`).join('');
+
+    card.innerHTML = `
+      <div class="gk-suggest-head">
+        <span class="p-dot tier-${c.p.tier}-dot"></span>
+        <div class="suggest-namewrap">
+          <div class="suggest-name">${c.p.name}${favStar('portieri',c.p.name)} <span class="suggest-team">${c.p.squadra}</span></div>
+        </div>
+        <div class="suggest-price">${c.values.ideal}<div class="p-price-sub">MAX ${c.values.max}</div></div>
+      </div>
+      <div class="gk-pairs">${sameHtml}${partnerHtml}</div>`;
+    body.appendChild(card);
+  });
+}
+
+/* ---------- PRIORITA' ACQUISTO ----------
+   Classifica i liberi del ruolo combinando qualità, value above replacement, cliff,
+   pressione avversaria e target strategici (solo come correttivo morbido). */
+function renderSuggestions(){
+  const role = ui.role;
+  document.getElementById('suggestRoleLabel').textContent = ROLES[role].full;
+  const body = document.getElementById('suggestBody');
+  body.innerHTML = '';
+
+  const factors = computeMarketFactors();
+  if(role==='portieri'){
+    renderGoalkeeperSuggestions(body, factors);
+    return;
+  }
+  const affareSet = computeAffareSet(role,factors);
+  const stratRow = strategyRowFor(role);
+  const needOpen = stratRow ? stratProgress(stratRow.role,stratRow.tiers)<stratRow.target : false;
+
+  const candidates = PLAYER_DATA[role]
+    .filter(p=>getP(role,p.name).owner===null)
+    .map(p=>{
+      const values=playerAuctionValues(role,p,factors);
+      let priority=p.score||0;
+      const reasons=[];
+
+      if(affareSet.has(p.name)){ priority+=1.20; reasons.push('affare'); }
+      if(values.cliff.level==='high'){ priority+=1.35; reasons.push(values.cliff.label.toLowerCase()); }
+      else if(values.cliff.level==='mid'){ priority+=0.70; reasons.push('cliff'); }
+      else if(values.cliff.level==='low'){ priority+=0.30; }
+
+      if(values.competitors>=5){ priority+=0.60; reasons.push(`${values.competitors} rivali`); }
+      else if(values.competitors>=3){ priority+=0.30; reasons.push(`${values.competitors} rivali`); }
+
+      if(stratRow && stratRow.tiers.includes(p.tier)){
+        if(needOpen){ priority+=0.50; reasons.push('strategia'); }
+        else { priority-=0.15; }
+      }
+      // Penalizza leggermente chi mangia quasi tutto il tetto intelligente disponibile.
+      const capUse = values.budgetCap>0 ? values.ideal/values.budgetCap : 9;
+      if(capUse>0.85) priority-=0.40;
+
+      return {p,values,priority,reasons};
+    })
+    .filter(c=>c.values.ideal<=c.values.budgetCap)
+    .sort((a,b)=>b.priority-a.priority)
+    .slice(0,3);
+
+  if(candidates.length===0){
+    body.innerHTML='<div class="empty" style="padding:6px 0;">Nessun candidato compatibile con la riserva di budget.</div>';
+    return;
+  }
+
+  candidates.forEach(c=>{
+    const row=document.createElement('div');
+    row.className='suggest-row';
+    const baseTags=c.reasons.slice(0,2).map(r=>`<span class="suggest-tag">${r}</span>`).join('');
+    const rigTag=RIGORISTI[c.p.name]?'<span class="suggest-tag">RIG</span>':'';
+    const tagHtml=baseTags+rigTag;
+    row.innerHTML=`
+      <span class="p-dot tier-${c.p.tier}-dot"></span>
+      <div class="suggest-namewrap">
+        <div class="suggest-name">${c.p.name}${favStar(role,c.p.name)}${currentInjuryHtml(c.p.name)} <span class="suggest-team">${c.p.squadra}</span></div>
+        <div class="suggest-tags">${tagHtml}</div>
+      </div>
+      <div class="suggest-price">${c.values.ideal}<div class="p-price-sub">MAX ${c.values.max}</div></div>`;
+    body.appendChild(row);
+  });
+}
+
+function renderHeader(){
+  const speso = totalSpeso();
+  const rimanente = state.budget - speso;
+  document.getElementById('spesoVal').textContent = speso;
+  document.getElementById('rimanenteVal').textContent = rimanente;
+  document.getElementById('rimanenteCell').classList.toggle('warn', rimanente < 0);
+
+  const phase=currentAuctionRole();
+  const totalPhaseSlots=ROLES[phase].slots*ALL_MANAGERS.length;
+  const filledPhase=ALL_MANAGERS.reduce((sum,mid)=>sum+Math.min(ROLES[phase].slots,slotsFilledBy(mid,phase)),0);
+  (document.getElementById('phaseText')||{textContent:null}).textContent=`${ROLES[phase].full.toUpperCase()} · ${filledPhase}/${totalPhaseSlots}`;
+
+  const strip = document.getElementById('rolesStrip');
+  strip.innerHTML = '';
+  for(const r in ROLES){
+    const filled = slotsFilled(r);
+    const el = document.createElement('div');
+    el.className = 'role-chip' + (ui.role===r ? ' active':'');
+    el.dataset.role = r;
+    el.innerHTML = `<div class="rn">${ROLES[r].label}</div><div class="rc">${filled}/${ROLES[r].slots}</div>`;
+    strip.appendChild(el);
+  }
+}
+
+function renderStrategy(){
+  const body=document.getElementById('strategyBody');
+  body.innerHTML='';
+  STRATEGY_ROWS.forEach((row,i)=>{
+    const done=stratProgress(row.role,row.tiers);
+    const target=row.target;
+    const pct=Math.min(100,Math.round(100*done/Math.max(1,target)));
+    const el=document.createElement('div');
+    el.className='strat-row';
+    el.innerHTML=`
+      <span class="strat-label">${row.label}</span>
+      <div class="strat-bar"><div class="strat-bar-fill" style="width:${pct}%"></div></div>
+      <span class="mono" style="min-width:34px;text-align:right;">${done}/${target}</span>
+      <input type="number" class="strat-target" data-idx="${i}" value="${target}" min="0" max="10" style="margin-left:8px;">`;
+    body.appendChild(el);
+  });
+
+  const factors=computeMarketFactors();
+  const sub=document.createElement('div');
+  sub.className='strat-subhead';
+  sub.textContent='BUDGET DINAMICO';
+  body.appendChild(sub);
+  const phaseIdx=Math.max(0,roleIndex(currentAuctionRole()));
+  const reserves=normalizedRoleReserves(factors);
+  const remaining=Math.max(0,state.budget-totalSpeso());
+  ROLE_SEQUENCE.forEach((role,idx)=>{
+    if(idx<phaseIdx && slotsFilled(role)>=ROLES[role].slots) return;
+    const missing=Math.max(0,ROLES[role].slots-slotsFilled(role));
+    if(missing===0) return;
+    const reserve=reserves[role]||0;
+    const row=document.createElement('div');
+    row.className='budget-row';
+    row.innerHTML=`<span class="budget-role">${ROLES[role].label}</span><span class="budget-mid">${missing} slot da coprire${idx===phaseIdx?' · ORA':''}</span><span class="budget-slot">RISERVA ${reserve}</span>`;
+    body.appendChild(row);
+  });
+  const totalReserve=ROLE_SEQUENCE.reduce((s,r)=>s+(reserves[r]||0),0);
+  const check=document.createElement('div');
+  check.className='strat-subhead';
+  check.style.marginTop='6px';
+  check.style.paddingTop='7px';
+  check.innerHTML=`TOTALE RISERVE <span class="mono" style="float:right;color:var(--amber)">${totalReserve} / ${remaining}</span>`;
+  body.appendChild(check);
+}
+
+const TIER_ORDER = ['TOP','SEMITOP','LOWCOST_TITOLARI','LOWCOST_SORPRESE'];
+const TIER_LABELS = {TOP:'Top', SEMITOP:'Semitop', LOWCOST_TITOLARI:'Lowcost Titolari', LOWCOST_SORPRESE:'Lowcost Sorprese', LOWCOST:'Lowcost'};
+const POR_TIER_ORDER = ['TOP','LOWCOST'];
+
+
+function renderList(){
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  const role = ui.role;
+  const q = ui.search.trim().toLowerCase();
+  let list = PLAYER_DATA[role].filter(p => !q || p.name.toLowerCase().includes(q));
+
+  if(state.hideTaken){
+    list = list.filter(p => getP(role,p.name).owner===null);
+  }
+
+  if(list.length===0){ main.innerHTML = '<div class="empty">Nessun giocatore trovato.</div>'; return; }
+
+  const factors = computeMarketFactors();
+  const affareSet = computeAffareSet(role, factors);
+  const container = document.createElement('div');
+
+  const favoriteGroup = list
+    .filter(p => FAVORITES[role] && FAVORITES[role].has(p.name))
+    .sort((a,b)=>b.score-a.score);
+
+  if(favoriteGroup.length){
+    const freeFavs = favoriteGroup.filter(p => getP(role,p.name).owner===null).length;
+    const favHeader = document.createElement('div');
+    favHeader.className = 'tier-header tier-PREFERITI';
+    favHeader.innerHTML = `<span>★ PREFERITI</span><span class="tier-scarcity${freeFavs<=2?' low':''}">${freeFavs} liberi</span>`;
+    container.appendChild(favHeader);
+    favoriteGroup.forEach(p => container.appendChild(renderPlayer(role,p,factors,affareSet)));
+  }
+
+  const tierOrder = role==='portieri' ? POR_TIER_ORDER : TIER_ORDER;
+
+  tierOrder.forEach(tier => {
+    const group = list.filter(p => p.tier===tier).sort((a,b)=>b.score-a.score);
+    if(group.length===0) return;
+    const freeLeft = PLAYER_DATA[role].filter(p => p.tier===tier && getP(role,p.name).owner===null).length;
+    const header = document.createElement('div');
+    header.className = 'tier-header tier-'+tier;
+    header.innerHTML = `<span>${TIER_LABELS[tier]}</span><span class="tier-scarcity${freeLeft<=2?' low':''}">${freeLeft} liberi</span>`;
+    container.appendChild(header);
+    group.forEach(p => container.appendChild(renderPlayer(role, p, factors, affareSet)));
+  });
+
+  main.appendChild(container);
+}
+
+
+
+function renderPlayer(role, meta, factors, affareSet){
+  const name = meta.name;
+  const p = getP(role, name);
+  const k = key(role,name);
+  const div = document.createElement('div');
+  const statusClass = p.owner==='me' ? 'status-mine' : (p.owner ? 'status-other' : 'status-free');
+  div.className = 'player '+statusClass;
+  div.dataset.key = k;
+
+  const dot = meta.tier ? `<span class="p-dot tier-${meta.tier}-dot"></span>` : '';
+  const values = playerAuctionValues(role, meta, factors);
+  const dyn = values.ideal;
+  const intelTags=[];
+  if(affareSet.has(name)) intelTags.push('<span class="intel-tag affare">AFFARE</span>');
+  const rigTag=rigoristaTagHtml(name); if(rigTag) intelTags.push(rigTag);
+  const intelHtml=intelTags.length?`<div class="p-intel">${intelTags.join('')}</div>`:'';
+  const scoreTag = meta.score ? `<div class="p-health-inline">${titolaritaInlineHtml(name)}${injuryInlineHtml(name)}<span class="p-score">SCORE ${meta.score.toFixed(1)}</span></div>` : `<div class="p-health-inline">${titolaritaInlineHtml(name)}${injuryInlineHtml(name)}</div>`;
+  let priceBlock = '';
+  if(p.owner==='me'){
+    priceBlock = `<div class="p-price-block"><div class="p-price-main paid">${p.price!=null?p.price:0}</div>${scoreTag}<div class="p-price-sub">pagato</div></div>`;
+  } else if(p.owner){
+    priceBlock = `<div class="p-price-block"><div class="p-price-main other">${p.price!=null?p.price:'—'}</div>${scoreTag}<div class="p-price-sub">${managerName(p.owner)}</div></div>`;
+  } else {
+    const diff = dyn - meta.prezzo;
+    let trend = '';
+    if(Math.abs(diff) >= Math.max(1, meta.prezzo*0.06)){
+      trend = diff>0 ? '<span class="p-trend up">▲</span>' : '<span class="p-trend down">▼</span>';
+    }
+    priceBlock = `<div class="p-price-block">
+      <div class="p-metrics">
+        ${titolaritaMetricHtml(name)}
+        ${injuryMetricHtml(name)}
+        <div class="p-metric p-metric-score"><div class="p-metric-label">SCORE</div><div class="p-metric-value">${values.score.toFixed(1)}</div></div>
+        <div class="p-metric p-metric-ideal"><div class="p-metric-label">€€ IDEALE</div><div class="p-metric-value">${dyn}${trend}</div></div>
+        <div class="p-metric p-metric-max"><div class="p-metric-label">€€ MAX</div><div class="p-metric-value">${values.max}</div></div>
+      </div>
+    </div>`;
+  }
+
+  const row = document.createElement('div');
+  row.className = 'p-row';
+  row.innerHTML = `
+    ${dot}
+    <div class="p-namewrap">
+      <div class="p-name">${p.owner && p.owner!=='me' ? '<span class="strike">'+name+'</span>' : name}${favStar(role,name)}${currentInjuryHtml(name)}</div>
+      <div class="p-team">${meta.squadra}</div>
+      ${!p.owner ? intelHtml : ''}
+    </div>
+    ${p.owner==='me' ? '<span class="p-badge mine">MIO</span>' : ''}
+    ${p.owner && p.owner!=='me' ? '<span class="p-badge other">'+managerName(p.owner).toUpperCase()+'</span>' : ''}
+    ${priceBlock}
+  `;
+  row.addEventListener('click', ()=>{
+    ui.expanded = (ui.expanded === k) ? null : k;
+    renderList();
+  });
+  div.appendChild(row);
+
+  const panel = document.createElement('div');
+  panel.className = 'p-panel' + (ui.expanded===k ? ' open':'');
+  const oppChips = MANAGER_IDS.map(id => `<span class="owner-chip${p.owner===id?' active':''}" data-owner="${id}">${managerName(id)}</span>`).join('');
+  const replacementText=values.replacement ? `${values.replacement.name} · ${values.replacement.score.toFixed(1)} · ~${values.replacementIdeal}` : 'nessuno comparabile';
+  panel.innerHTML = `
+    ${(CURRENT_INJURED[name] || !p.owner) ? `<div class="decision-box">
+      ${currentInjuryPanelHtml(name)}
+      ${!p.owner ? `<div class="decision-cell"><div class="decision-lbl">Replacement</div><div class="decision-val" title="${replacementText}">${replacementText}</div></div>` : ''}
+    </div>` : ''}
+    <div class="fld">
+      <label>Prezzo pagato</label>
+      <input type="number" min="0" class="price-input" value="${p.price!==null?p.price:''}" placeholder="${dyn}">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-mine" data-act="me">Mio</button>
+      <button class="btn btn-free" data-act="free">Libera</button>
+    </div>
+    <span class="panel-section-lbl">Preso da un avversario:</span>
+    <div class="owner-chips">${oppChips}</div>
+  `;
+  panel.querySelector('.price-input').addEventListener('click', e=>e.stopPropagation());
+  panel.addEventListener('click', e=>{
+    const chip = e.target.closest('.owner-chip');
+    const btn = e.target.closest('button');
+    if(!chip && !btn) { e.stopPropagation(); return; }
+    e.stopPropagation();
+    const priceVal = panel.querySelector('.price-input').value;
+    let ownerId = null;
+    if(chip) ownerId = chip.dataset.owner;
+    else if(btn) ownerId = btn.dataset.act==='free' ? null : btn.dataset.act;
+    if(ownerId){
+      p.owner = ownerId;
+      p.price = priceVal==='' ? dyn : parseInt(priceVal,10);
+    } else {
+      p.owner = null; p.price=null;
+    }
+    ui.expanded = null;
+    scheduleSave();
+    renderAll();
+  });
+  div.appendChild(panel);
+  return div;
+}
+
+function renderRosters(){
+  const body = document.getElementById('roseBody');
+  body.innerHTML = '';
+  ALL_MANAGERS.forEach(mid => {
+    const card = document.createElement('div');
+    card.className = 'rose-card';
+    const speso = totalSpesoBy(mid);
+    const rimanente = state.budget - speso;
+    const nameHtml = mid==='me'
+      ? `<span class="rose-name me">Io</span>`
+      : `<input class="rose-name-input" data-oppidx="${MANAGER_IDS.indexOf(mid)}" value="${managerName(mid)}">`;
+    const slotsHtml = Object.keys(ROLES).map(r => {
+      const filled = slotsFilledBy(mid, r);
+      const full = filled >= ROLES[r].slots;
+      return `<div class="rose-slot${full?' full':''}">${ROLES[r].label} ${filled}/${ROLES[r].slots}</div>`;
+    }).join('');
+    card.innerHTML = `
+      <div class="rose-head">
+        <div>${nameHtml}</div>
+        <div class="rose-stats">Speso <b>${speso}</b> · Rim. <b>${rimanente}</b></div>
+      </div>
+      <div class="rose-slots">${slotsHtml}</div>
+      <div class="rose-players" id="rosePlayers-${mid}"></div>
+    `;
+    const head = card.querySelector('.rose-head');
+    head.addEventListener('click', (e)=>{
+      if(e.target.classList.contains('rose-name-input')) return;
+      ui.roseOpen = (ui.roseOpen===mid) ? null : mid;
+      renderRosters();
+    });
+    const nameInput = card.querySelector('.rose-name-input');
+    if(nameInput){
+      nameInput.addEventListener('click', e=>e.stopPropagation());
+      nameInput.addEventListener('change', e=>{
+        state.opponents[parseInt(e.target.dataset.oppidx,10)] = e.target.value || managerName(mid);
+        scheduleSave();
+        renderAll();
+      });
+    }
+    const playersDiv = card.querySelector('.rose-players');
+    if(ui.roseOpen===mid){
+      playersDiv.classList.add('open');
+      let rows = '';
+      for(const role in ROLES){
+        PLAYER_DATA[role].forEach(meta => {
+          const st = getP(role, meta.name);
+          if(st.owner===mid){
+            rows += `<div class="rose-player-row"><b>${meta.name}${favStar(role,meta.name)}${currentInjuryHtml(meta.name)}</b><span class="mono">${st.price!=null?st.price:'-'}</span></div>`;
+          }
+        });
+      }
+      playersDiv.innerHTML = rows || '<div class="rose-player-row" style="justify-content:center;">Nessun giocatore ancora</div>';
+    }
+    body.appendChild(card);
+  });
+}
+
+function renderAll(){
+  renderHeader();
+  renderStrategy();
+  renderRosters();
+  renderSuggestions();
+  renderList();
+}
+
+document.getElementById('rolesStrip').addEventListener('click', e=>{
+  const chip = e.target.closest('.role-chip');
+  if(!chip) return;
+  ui.role = chip.dataset.role;
+  ui.expanded = null;
+  renderAll();
+});
+document.getElementById('searchInput').addEventListener('input', e=>{
+  ui.search = e.target.value;
+  renderList();
+});
+document.getElementById('hideTakenToggle').addEventListener('click', ()=>{
+  state.hideTaken = !state.hideTaken;
+  document.getElementById('hideTakenSwitch').classList.toggle('on', state.hideTaken);
+  scheduleSave();
+  renderList();
+});
+document.getElementById('strategyBody').addEventListener('change', e=>{
+  if(e.target.classList.contains('strat-target')){
+    const idx=parseInt(e.target.dataset.idx,10);
+    STRATEGY_ROWS[idx].target=parseInt(e.target.value,10)||0;
+    state.strategyTargets=state.strategyTargets||{};
+    state.strategyTargets[STRATEGY_ROWS[idx].role]=STRATEGY_ROWS[idx].target;
+    scheduleSave();
+    renderAll();
+  }
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  const box = document.getElementById('resetBtn');
+  if(box.dataset.armed==='1'){
+    state.players = {};
+    box.dataset.armed='0';
+    box.textContent='Reset asta';
+    scheduleSave();
+    renderAll();
+  } else {
+    box.dataset.armed='1';
+    box.textContent='Conferma?';
+    setTimeout(()=>{ box.dataset.armed='0'; box.textContent='Reset asta'; }, 3000);
+  }
+});
+
+function applySavedStrategyTargets(){
+  if(!state.strategyTargets) return;
+  STRATEGY_ROWS.forEach(row=>{
+    if(Number.isFinite(Number(state.strategyTargets[row.role]))) row.target=Number(state.strategyTargets[row.role]);
+  });
+}
+
+(async function init(){
+  await load();
+  applySavedStrategyTargets();
+  ui.role=currentAuctionRole();
+  document.getElementById('hideTakenSwitch').classList.toggle('on', state.hideTaken);
+  renderAll();
+})();
+
+</script>
+</body>
+</html>
