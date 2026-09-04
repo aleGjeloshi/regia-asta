@@ -272,6 +272,14 @@
   .gk-pair-price{font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:var(--amber); min-width:42px; text-align:right; flex-shrink:0;}
   .gk-pair-price-sub{font-size:8px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-top:1px;}
 </style>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#111318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Regia Asta">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
 </head>
 <body>
 
@@ -1762,5 +1770,14 @@ function applySavedStrategyTargets(){
 })();
 
 </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
+</script>
+
 </body>
 </html>
